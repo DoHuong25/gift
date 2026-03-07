@@ -82,18 +82,17 @@ let flyingImageUrls = [];
 
 async function fetchSettings(configId) {
   try {
-    const doc = await _fbDb.collection('gifts').doc(configId).get();
-    if (!doc.exists) throw new Error('Gift not found');
-    const data = doc.data();
+    const { data: doc, error } = await window.supabaseClient
+      .from('gifts')
+      .select('data')
+      .eq('id', configId)
+      .single();
+      
+    if (error || !doc) throw new Error('Gift not found');
+    const data = doc.data;
     
-    // Fetch images from subcollection
-    let images = [];
-    try {
-      const imgDoc = await _fbDb.collection('gifts').doc(configId).collection('images').doc('tpl2').get();
-      if (imgDoc.exists) {
-         images = imgDoc.data().imgs || [];
-      }
-    } catch(e) {}
+    // Fetch images from JSON payload
+    let images = data.tpl2Images || [];
     
     // Convert to lovegift format
     return {
@@ -109,7 +108,7 @@ async function fetchSettings(configId) {
       introHint: data.tpl2IntroHint || 'Chạm vào ảnh, có điều bất ngờ'
     };
   } catch (e) {
-    console.error('Failed to fetch settings from Firebase:', e);
+    console.error('Failed to fetch settings from Supabase:', e);
     return null;
   }
 }

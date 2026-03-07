@@ -7,24 +7,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Pacifico&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<!-- Firebase compat SDKs -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const FB_CONFIG = {
-  apiKey: "AIzaSyDn7xAmMyp1NAJXB9R9Kmvp59TGKozR07g",
-  authDomain: "gifr-3c302.firebaseapp.com",
-  projectId: "gifr-3c302",
-  storageBucket: "gifr-3c302.firebasestorage.app",
-  messagingSenderId: "945449706355",
-  appId: "1:945449706355:web:85fd5425f34721d1d39b06"
-};
-if (!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
-const _fbDb   = firebase.firestore();
-const _fbAuth = firebase.auth();
+const SUPABASE_URL = "https://mptafoqsqphjqhfxrqtw.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wdGFmb3FzcXBoanFoZnhycXR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4OTYxNDAsImV4cCI6MjA4ODQ3MjE0MH0.IzmJfVJQLruafqwdZC6qcLFlLRT6fiUMCNrcHBDBviA";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Fallback defaults (dùng trong generateShareLink khi state chưa có giá trị)
+// Fallback defaults
 const CONFIG_DEFAULTS = {
   sphereImages:  Array.from({length:10},(_,i)=>`assets/images/sphere/sphere_${i+1}.jpeg`),
   letterImage:   'assets/images/letters/letter_photo.jpg',
@@ -32,28 +22,12 @@ const CONFIG_DEFAULTS = {
   bgMusic:       'musics/thuongemdengia.mp3'
 };
 
-let _currentUser = null; // Firebase user
-
-// Auth state
-_fbAuth.onAuthStateChanged(user => {
-  _currentUser = user;
-  const loginOverlay = document.getElementById('loginOverlay');
-  if (loginOverlay) loginOverlay.style.display = user ? 'none' : 'flex';
-  const userInfo = document.getElementById('userInfoBar');
-  if (userInfo && user) {
-    userInfo.innerHTML = `<img src="${user.photoURL||''}" style="width:28px;height:28px;border-radius:50%;vertical-align:middle;margin-right:8px">${user.displayName||user.email} <button onclick="signOut()" style="margin-left:12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px">Đăng xuất</button>`;
-    userInfo.style.display = 'flex';
-  } else if (userInfo) {
-    userInfo.style.display = 'none';
-  }
-});
-
-function signInGoogle() {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  _fbAuth.signInWithPopup(provider).catch(e => alert('Lỗi đăng nhập: ' + e.message));
-}
-function signOut() {
-  _fbAuth.signOut();
+// Generate UUID for Supabase
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
 }
 </script>
 <style>
@@ -400,39 +374,7 @@ function signOut() {
 </head>
 <body>
 
-<!-- Login Overlay -->
-<div id="loginOverlay" style="
-  position:fixed;inset:0;z-index:9999;
-  background:linear-gradient(135deg,#0a0010,#1a0030);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
-">
-  <div style="font-size:64px">🎁</div>
-  <div style="font-size:1.6rem;font-weight:700;color:#fff">Chỉnh sửa Quà 8/3</div>
-  <div style="font-size:14px;color:rgba(255,255,255,0.5);margin-bottom:8px">Đăng nhập để tạo & lưu món quà của bạn</div>
-  <button onclick="signInGoogle()" style="
-    display:flex;align-items:center;gap:12px;
-    background:#fff;color:#333;border:none;
-    padding:14px 28px;border-radius:50px;font-size:15px;font-weight:600;
-    cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.3);
-    transition:.2s;
-  " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:22px;height:22px">
-    Đăng nhập bằng Google
-  </button>
-  <div style="font-size:12px;color:rgba(255,255,255,0.3);text-align:center;max-width:300px">
-    Thông tin đăng nhập chỉ dùng để định danh link quà của bạn
-  </div>
-</div>
-
-<!-- User info bar -->
-<div id="userInfoBar" style="
-  display:none;position:fixed;top:0;right:0;
-  padding:8px 16px;background:rgba(0,0,0,0.3);
-  backdrop-filter:blur(8px);border-bottom-left-radius:12px;
-  color:#fff;font-size:13px;align-items:center;z-index:100;
-"></div>
-
-<!-- Header -->
+<!-- Auth overlay removed for Supabase anon --><!-- Header -->
 <div class="header">
   <div class="header-left">
     <div class="header-icon">🎁</div>
@@ -1036,49 +978,45 @@ async function handleMusicFile(input) {
     return;
   }
   
-  statusEl.textContent = `⏳ Đang tải bài "${f.name}" lên máy chủ trọn đời... Vui lòng chờ vài giây...`;
+  statusEl.textContent = `⏳ Đang tải bài "${f.name}" lên vùng nhớ Đám mây...`;
   statusEl.style.color = '#ff9800';
   
   try {
-    const formData = new FormData();
-    formData.append('file', f);
+    const ext = f.name.split('.').pop() || 'mp3';
+    const filePath = `music_${Date.now()}_${generateUUID()}.${ext}`;
     
-    // tmpfiles.org allow CORS file upload
-    const res = await fetch('https://tmpfiles.org/api/v1/upload', {
-      method: 'POST',
-      body: formData,
-    });
+    // Upload thẳng lên Supabase Storage bucket 'files'
+    const { data: uploadData, error: uploadError } = await supabase
+      .storage
+      .from('files')
+      .upload(filePath, f, {
+        cacheControl: '3600',
+        upsert: false
+      });
+      
+    if (uploadError) throw uploadError;
+
+    // Lấy link dùng chung
+    const { data: publicData } = supabase
+      .storage
+      .from('files')
+      .getPublicUrl(filePath);
+      
+    const url = publicData.publicUrl;
     
-    if (!res.ok) throw new Error('Máy chủ lưu trữ từ chối kết nối');
-    const data = await res.json();
-    const url = data.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
-    
-    state.bgMusicBase64 = null; // Trống trơn để Firebase không bị quá nặng
-    state.bgMusicPath = url;    // Dùng URL trực tiếp
+    state.bgMusicBase64 = null; // Bỏ Base64
+    state.bgMusicPath = url;    // Dùng URL tĩnh lưu vào Database
     document.getElementById('bgMusicPath').value = url;
     
     const sizeMB = (f.size / (1024 * 1024)).toFixed(2);
-    statusEl.innerHTML = `✅ Đã tải chờ thành công <b>${f.name}</b> (${sizeMB} MB)! Firebase sẽ liên kết tới file này.`;
+    statusEl.innerHTML = `✅ Đã tải thành công <b>${f.name}</b> (${sizeMB} MB)!`;
     statusEl.style.color = '#6ddd8a';
     markDirty();
   } catch (err) {
     console.error(err);
-    
-    // Gặp lỗi CORS (chặn web ẩn danh) thì chuyển hướng lưu Text tĩnh (Base64) cổ điển cho file nhỏ
-    if (f.size <= 720 * 1024) {
-      statusEl.textContent = `⚠️ Đám mây từ chối! Đang dùng bộ nhớ cục bộ (do file < 700KB)...`;
-      const b64 = await fileToBase64(f);
-      state.bgMusicBase64 = b64;
-      state.bgMusicPath = f.name;
-      document.getElementById('bgMusicPath').value = f.name;
-      statusEl.textContent = `✅ Đã lưu bằng Base64 (Cục bộ): ${f.name}`;
-      statusEl.style.color = '#6ddd8a';
-      markDirty();
-    } else {
-      statusEl.textContent = `❌ Thất bại: Đám mây chặn do lỗi CORS. File lại > 700KB nên không lưu offline được. Hãy dùng điện thoại / nén nhỏ nhạc lại!`;
-      statusEl.style.color = '#f44336';
-      input.value = '';
-    }
+    statusEl.textContent = `❌ Lỗi tải nhạc: ${err.message}. Kiểm tra lại Storage bucket 'files' trong Supabase có public không?`;
+    statusEl.style.color = '#f44336';
+    input.value = '';
   }
 }
 
@@ -1172,8 +1110,6 @@ async function saveAndPreviewLocal() {
 // TẠO LINK RIÊNG — Firestore only (không cần Storage)
 // ════════════════════════════════════════════════════════════
 async function generateShareLink() {
-  // Yêu cầu đăng nhập
-  if (!_currentUser) { signInGoogle(); return; }
 
   const btnList = [document.querySelector('[onclick="generateShareLink()"]'), document.getElementById('btnSaveBottom')].filter(Boolean);
   const origTexts = btnList.map(b => b.textContent);
@@ -1219,49 +1155,42 @@ async function generateShareLink() {
       state.particleImageBase64 || null, 128, 128, 0.7
     );
 
-    // Sử dụng cấu hình từ buildConfig()
+    // --- Lưu thẳng vào Supabase (thay vì Firebase) ---
     btnList.forEach(b => b.textContent = '⬆ Đang lưu lên mây...');
     const mainCfg = buildConfig();
     
-    // Ghép thêm metadata cần thiết cho Cloud
+    // Default fallback images
     const configDefaults = window.DEFAULT_APP_CONFIG || {};
     mainCfg.letterImage = letterImg || configDefaults.letterImage || null;
     mainCfg.particleImage = particleImg || configDefaults.particleImage || null;
     if (mainCfg.letter) mainCfg.letter.image = mainCfg.letterImage;
 
-    mainCfg.sphereCount = sphereCompressed.filter(Boolean).length;
     mainCfg.createdAt = new Date().toISOString();
     
-    // Bỏ đi mảng ảnh lớn vì dữ liệu này được lưu ở subcollection
-    delete mainCfg.sphereImages;
-    delete mainCfg.tpl2Images;
-    const docRef = await _fbDb.collection('gifts').add(mainCfg);
-
-    // Lưu sphere images vào sub-collection, batch 10 ảnh/doc
+    // Gộp tất cả dữ liệu (sphereImages, tpl2Images) vào một khối JSON để lưu
     const validSphere = sphereCompressed.filter(Boolean);
-    const BATCH = 10;
-    for (let b = 0; b * BATCH < validSphere.length; b++) {
-      btnList.forEach(btn => btn.textContent = `⬆ Lưu ảnh cầu batch ${b+1}...`);
-      await _fbDb.collection('gifts').doc(docRef.id)
-        .collection('images').doc(`sphere_${b}`).set({ imgs: validSphere.slice(b*BATCH, (b+1)*BATCH) });
-    }
-
-    // Lưu ảnh Mẫu 2 nếu có
-    const tpl2ImgsCompressed = [];
-    const tpl2Raw = state.tpl2Images || [];
-    for (let i = 0; i < tpl2Raw.length; i++) {
-      btnList.forEach(btn => btn.textContent = `⏳ Nén ảnh hoa ${i+1}/${tpl2Raw.length}...`);
-      tpl2ImgsCompressed.push(await compressImg(tpl2Raw[i], 300, 300, 0.7));
-    }
     const validTpl2 = tpl2ImgsCompressed.filter(Boolean);
-    if (validTpl2.length > 0) {
-      await _fbDb.collection('gifts').doc(docRef.id)
-        .collection('images').doc('tpl2').set({ imgs: validTpl2 });
+    
+    mainCfg.sphereImages = validSphere;
+    mainCfg.tpl2Images = validTpl2;
+    mainCfg.sphereCount = validSphere.length;
+    
+    // Gửi lên bảng gifts trong Supabase
+    const docId = generateUUID();
+    
+    const { error: sbError } = await supabase
+      .from('gifts')
+      .insert([
+        { id: docId, data: mainCfg }
+      ]);
+        
+    if (sbError) {
+      throw new Error("Lỗi lưu Supabase: " + sbError.message + " (Gợi ý: Hãy tạo cột 'data' kiểu 'jsonb' trong bảng gifts)");
     }
 
     const tplOpt = document.querySelector('input[name="templateOpt"]:checked').value;
     const linkPath = tplOpt === '2' ? 'template2/index.html' : '';
-    const link = `${window.location.origin}/${linkPath}?id=${docRef.id}`;
+    const link = `${window.location.origin}/${linkPath}?id=${docId}`;
 
     document.getElementById('genLinkBox').value = link;
     document.getElementById('qrUrl').value = link;

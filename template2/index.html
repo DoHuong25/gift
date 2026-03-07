@@ -42,20 +42,12 @@
     <!-- Pako for compression -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
 
-    <!-- Firebase compat SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-    const FB_CONFIG = {
-      apiKey: "AIzaSyDn7xAmMyp1NAJXB9R9Kmvp59TGKozR07g",
-      authDomain: "gifr-3c302.firebaseapp.com",
-      projectId: "gifr-3c302",
-      storageBucket: "gifr-3c302.firebasestorage.app",
-      messagingSenderId: "945449706355",
-      appId: "1:945449706355:web:85fd5425f34721d1d39b06"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
-    const _fbDb = firebase.firestore();
+      const SUPABASE_URL = "https://mptafoqsqphjqhfxrqtw.supabase.co";
+      const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wdGFmb3FzcXBoanFoZnhycXR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4OTYxNDAsImV4cCI6MjA4ODQ3MjE0MH0.IzmJfVJQLruafqwdZC6qcLFlLRT6fiUMCNrcHBDBviA";
+      window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     </script>
 </head>
 <body class="container">

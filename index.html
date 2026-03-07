@@ -8,22 +8,13 @@
     <meta name="apple-mobile-web-app-title" content="Món Quà Nhỏ">
     <link rel="apple-touch-icon" href="assets/images/icons/couple.png">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/images/icons/couple.png">
-    <!-- Firebase compat SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
     (function(){
-      const _FC = {
-        apiKey: "AIzaSyDn7xAmMyp1NAJXB9R9Kmvp59TGKozR07g",
-        authDomain: "gifr-3c302.firebaseapp.com",
-        projectId: "gifr-3c302",
-        storageBucket: "gifr-3c302.firebasestorage.app",
-        messagingSenderId: "945449706355",
-        appId: "1:945449706355:web:85fd5425f34721d1d39b06"
-      };
-      if (!firebase.apps.length) firebase.initializeApp(_FC);
-      window._fbDb = firebase.firestore();
+      const SUPABASE_URL = "https://mptafoqsqphjqhfxrqtw.supabase.co";
+      const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wdGFmb3FzcXBoanFoZnhycXR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4OTYxNDAsImV4cCI6MjA4ODQ3MjE0MH0.IzmJfVJQLruafqwdZC6qcLFlLRT6fiUMCNrcHBDBviA";
+      window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     })();
     </script>
     <link rel="apple-touch-icon" sizes="152x152" href="assets/images/icons/couple.png">
@@ -562,29 +553,21 @@
             return;
         }
 
-        // ── ?id= → lấy config từ Firestore ──
+        // ── ?id= → lấy config từ Supabase ──
         var idParam = params.get('id');
         if (idParam) {
             window.APP_CONFIG_PROMISE = (async () => {
                 try {
-                    const doc = await window._fbDb.collection('gifts').doc(idParam).get();
-                    if (!doc.exists) throw new Error('Gift không tồn tại');
-                    const d = doc.data();
+                    const { data: doc, error } = await window.supabaseClient
+                        .from('gifts')
+                        .select('data')
+                        .eq('id', idParam)
+                        .single();
+                        
+                    if (error || !doc) throw new Error('Gift không tồn tại');
+                    const d = doc.data; // payload JSON
 
-                    // Đọc sphere images từ sub-collection
-                    let sphereImages = window.DEFAULT_APP_CONFIG.sphereImages;
-                    if (d.sphereCount > 0) {
-                        const allSphere = [];
-                        const BATCH = 10;
-                        for (let b = 0; b * BATCH < d.sphereCount; b++) {
-                            const imgDoc = await window._fbDb.collection('gifts').doc(idParam)
-                                .collection('images').doc(`sphere_${b}`).get();
-                            if (imgDoc.exists) allSphere.push(...(imgDoc.data().imgs || []));
-                        }
-                        if (allSphere.length) sphereImages = allSphere;
-                    } else if (d.sphereImages?.length) {
-                        sphereImages = d.sphereImages; // backward compat
-                    }
+                    let sphereImages = d.sphereImages || window.DEFAULT_APP_CONFIG.sphereImages;
 
                     return Object.assign({}, window.DEFAULT_APP_CONFIG, {
                         letter: {
@@ -601,7 +584,7 @@
                         bgMusic:       d.bgMusic       || window.DEFAULT_APP_CONFIG.bgMusic
                     });
                 } catch(e) {
-                    console.error('Firebase fetch error:', e);
+                    console.error('Supabase fetch error:', e);
                     return window.DEFAULT_APP_CONFIG;
                 }
             })();
