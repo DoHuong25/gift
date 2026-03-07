@@ -7,9 +7,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Pacifico&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<!-- Firebase compat SDKs (chỉ Firestore, không cần Storage) -->
+<!-- Firebase compat SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script>
 const FB_CONFIG = {
   apiKey: "AIzaSyDn7xAmMyp1NAJXB9R9Kmvp59TGKozR07g",
@@ -20,7 +21,40 @@ const FB_CONFIG = {
   appId: "1:945449706355:web:85fd5425f34721d1d39b06"
 };
 if (!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
-const _fbDb = firebase.firestore();
+const _fbDb   = firebase.firestore();
+const _fbAuth = firebase.auth();
+
+// Fallback defaults (dùng trong generateShareLink khi state chưa có giá trị)
+const CONFIG_DEFAULTS = {
+  sphereImages:  Array.from({length:10},(_,i)=>`assets/images/sphere/sphere_${i+1}.jpeg`),
+  letterImage:   'assets/images/letters/letter_photo.jpg',
+  particleImage: 'assets/pngegg.png',
+  bgMusic:       'musics/thuongemdengia.mp3'
+};
+
+let _currentUser = null; // Firebase user
+
+// Auth state
+_fbAuth.onAuthStateChanged(user => {
+  _currentUser = user;
+  const loginOverlay = document.getElementById('loginOverlay');
+  if (loginOverlay) loginOverlay.style.display = user ? 'none' : 'flex';
+  const userInfo = document.getElementById('userInfoBar');
+  if (userInfo && user) {
+    userInfo.innerHTML = `<img src="${user.photoURL||''}" style="width:28px;height:28px;border-radius:50%;vertical-align:middle;margin-right:8px">${user.displayName||user.email} <button onclick="signOut()" style="margin-left:12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px">Đăng xuất</button>`;
+    userInfo.style.display = 'flex';
+  } else if (userInfo) {
+    userInfo.style.display = 'none';
+  }
+});
+
+function signInGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  _fbAuth.signInWithPopup(provider).catch(e => alert('Lỗi đăng nhập: ' + e.message));
+}
+function signOut() {
+  _fbAuth.signOut();
+}
 </script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -365,6 +399,38 @@ const _fbDb = firebase.firestore();
 </style>
 </head>
 <body>
+
+<!-- Login Overlay -->
+<div id="loginOverlay" style="
+  position:fixed;inset:0;z-index:9999;
+  background:linear-gradient(135deg,#0a0010,#1a0030);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+">
+  <div style="font-size:64px">🎁</div>
+  <div style="font-size:1.6rem;font-weight:700;color:#fff">Chỉnh sửa Quà 8/3</div>
+  <div style="font-size:14px;color:rgba(255,255,255,0.5);margin-bottom:8px">Đăng nhập để tạo & lưu món quà của bạn</div>
+  <button onclick="signInGoogle()" style="
+    display:flex;align-items:center;gap:12px;
+    background:#fff;color:#333;border:none;
+    padding:14px 28px;border-radius:50px;font-size:15px;font-weight:600;
+    cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.3);
+    transition:.2s;
+  " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:22px;height:22px">
+    Đăng nhập bằng Google
+  </button>
+  <div style="font-size:12px;color:rgba(255,255,255,0.3);text-align:center;max-width:300px">
+    Thông tin đăng nhập chỉ dùng để định danh link quà của bạn
+  </div>
+</div>
+
+<!-- User info bar -->
+<div id="userInfoBar" style="
+  display:none;position:fixed;top:0;right:0;
+  padding:8px 16px;background:rgba(0,0,0,0.3);
+  backdrop-filter:blur(8px);border-bottom-left-radius:12px;
+  color:#fff;font-size:13px;align-items:center;z-index:100;
+"></div>
 
 <!-- Header -->
 <div class="header">
@@ -1010,15 +1076,20 @@ function openHeartQRShare() {
   window.open('heartqr.html?link=' + encodeURIComponent(link), '_blank');
 }
 
-// \u2550\u2550 T\u1ea1o link ri\u00eang \u2014 Firestore only (kh\u00f4ng c\u1ea7n Storage) \u2550\u2550
+// ════════════════════════════════════════════════════════════
+// TẠO LINK RIÊNG — Firestore only (không cần Storage)
+// ════════════════════════════════════════════════════════════
 async function generateShareLink() {
+  // Yêu cầu đăng nhập
+  if (!_currentUser) { signInGoogle(); return; }
+
   const btn = document.querySelector('[onclick="generateShareLink()"]');
   const origText = btn.textContent;
-  btn.disabled = true; btn.textContent = '\u23f3 \u0110ang x\u1eed l\u00fd...';
+  btn.disabled = true; btn.textContent = '⏳ Đang xử lý...';
   document.getElementById('genLinkResult').style.display = 'none';
 
   try {
-    // \u2500\u2500 N\u00e9n \u1ea3nh base64 \u2500\u2500
+    // ── Nén ảnh base64 ──
     function compressImg(dataUrl, maxW, maxH, q) {
       return new Promise(res => {
         if (!dataUrl || !dataUrl.startsWith('data:')) { res(dataUrl || null); return; }
@@ -1039,7 +1110,7 @@ async function generateShareLink() {
 
     // Nén sphere images: 180×180 q=0.6 (an toàn cho 30 ảnh)
     const imgs = state.sphereImages?.length
-      ? state.sphereImages : (window.DEFAULT_APP_CONFIG?.sphereImages || []);
+      ? state.sphereImages : (CONFIG_DEFAULTS.sphereImages || []);
     const sphereCompressed = [];
     for (let i = 0; i < imgs.length; i++) {
       btn.textContent = `⏳ Nén ảnh cầu ${i+1}/${imgs.length}...`;
@@ -1066,9 +1137,9 @@ async function generateShareLink() {
       bgVolume:      state.bgVolume      ?? 0.55,
       enablePasscode: !!state.enablePasscode,
       passcode:      state.passcode      || '0308',
-      letterImage:   letterImg  || window.DEFAULT_APP_CONFIG.letter.image,
-      particleImage: particleImg || window.DEFAULT_APP_CONFIG.particleImage,
-      bgMusic:       state.bgMusicPath || window.DEFAULT_APP_CONFIG.bgMusic,
+      letterImage:   letterImg  || CONFIG_DEFAULTS.letterImage,
+      particleImage: particleImg || CONFIG_DEFAULTS.particleImage,
+      bgMusic:       state.bgMusicPath || CONFIG_DEFAULTS.bgMusic,
       sphereCount:   sphereCompressed.filter(Boolean).length,
       createdAt:     new Date().toISOString()
     };
