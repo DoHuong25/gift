@@ -1137,7 +1137,7 @@ async function generateShareLink() {
 
     // Nén sphere images: 180×180 q=0.6 (an toàn cho 30 ảnh)
     const imgs = state.sphereImages?.length
-      ? state.sphereImages : (CONFIG_DEFAULTS.sphereImages || []);
+      ? state.sphereImages : ((window.DEFAULT_APP_CONFIG && window.DEFAULT_APP_CONFIG.sphereImages) || []);
     const sphereCompressed = [];
     for (let i = 0; i < imgs.length; i++) {
       btnList.forEach(b => b.textContent = `⏳ Nén ảnh cầu ${i+1}/${imgs.length}...`);
