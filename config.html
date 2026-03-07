@@ -456,6 +456,46 @@ function signOut() {
 <!-- Main -->
 <div class="container">
 
+  <!-- ── Chọn Mẫu Thiệp ── -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-icon">🎨</span>
+      <span class="card-title">Chọn Mẫu Giao Diện</span>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;gap:12px">
+        <label style="flex:1;cursor:pointer;background:rgba(255,105,180,0.1);border:1px solid rgba(255,105,180,0.3);padding:14px;border-radius:10px;display:flex;align-items:center;gap:10px" id="lblTpl1">
+          <input type="radio" name="templateOpt" value="1" checked onchange="changeTplUI()" style="width:20px;height:20px">
+          <div>
+            <div style="font-weight:600;font-size:15px;color:var(--pink-light)">Mẫu 1: Quả cầu 3D</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">Nổi bật với quả cầu ảnh lơ lửng</div>
+          </div>
+        </label>
+        <label style="flex:1;cursor:pointer;background:rgba(255,255,255,0.05);border:1px solid var(--border);padding:14px;border-radius:10px;display:flex;align-items:center;gap:10px" id="lblTpl2">
+          <input type="radio" name="templateOpt" value="2" onchange="changeTplUI()" style="width:20px;height:20px">
+          <div>
+            <div style="font-weight:600;font-size:15px;color:#fff">Mẫu 2: Bó hoa Tulip</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">Phong cách bó hoa tối giản, nhẹ nhàng</div>
+          </div>
+        </label>
+      </div>
+      <script>
+        function changeTplUI() {
+          const isTpl2 = document.querySelector('input[name="templateOpt"]:checked').value === '2';
+          document.getElementById('lblTpl1').style.borderColor = isTpl2 ? 'var(--border)' : 'var(--pink)';
+          document.getElementById('lblTpl2').style.borderColor = isTpl2 ? 'var(--pink)' : 'var(--border)';
+          
+          // Ẩn ảnh quả cầu (vì mẫu 2 ko dùng tới)
+          document.getElementById('cardSphere').style.display = isTpl2 ? 'none' : 'block';
+          // Ẩn hiệu ứng hạt
+          document.getElementById('cardParticle').style.display = isTpl2 ? 'none' : 'block';
+          markDirty();
+        }
+      </script>
+    </div>
+  </div>
+
+
   <!-- ── Lá thư ── -->
   <div class="card">
     <div class="card-header">
@@ -489,7 +529,7 @@ function signOut() {
   </div>
 
   <!-- ── Ảnh quả cầu ── -->
-  <div class="card">
+  <div class="card" id="cardSphere">
     <div class="card-header">
       <span class="card-icon">🔮</span>
       <span class="card-title">Ảnh quả cầu 3D</span>
@@ -509,7 +549,7 @@ function signOut() {
   </div>
 
   <!-- ── Lời chúc hạt ── -->
-  <div class="card">
+  <div class="card" id="cardParticle">
     <div class="card-header">
       <span class="card-icon">✨</span>
       <span class="card-title">Lời chúc hiệu ứng hạt</span>
@@ -1167,7 +1207,9 @@ async function generateShareLink() {
         .collection('images').doc(`sphere_${b}`).set({ imgs: validSphere.slice(b*BATCH, (b+1)*BATCH) });
     }
 
-    const link = `${window.location.origin}/?id=${docRef.id}`;
+    const tplOpt = document.querySelector('input[name="templateOpt"]:checked').value;
+    const linkPath = tplOpt === '2' ? 'template2/index.html' : '';
+    const link = `${window.location.origin}/${linkPath}?id=${docRef.id}`;
 
     document.getElementById('genLinkBox').value = link;
     document.getElementById('genLinkResult').style.display = 'block';
@@ -1201,7 +1243,9 @@ function makeQrFromGenLink() {
 }
 
 function openPreview() {
-  window.open('index.html?preview=1', '_blank');
+  const tplOpt = document.querySelector('input[name="templateOpt"]:checked').value;
+  const linkPath = tplOpt === '2' ? 'template2/index.html' : 'index.html';
+  window.open(linkPath + '?preview=1', '_blank');
 }
 
 // ════════════════════════════════════════════════════════════
