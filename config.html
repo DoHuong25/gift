@@ -1041,24 +1041,24 @@ async function handleMusicFile(input) {
   
   try {
     const formData = new FormData();
-    formData.append('reqtype', 'fileupload');
-    formData.append('fileToUpload', f);
+    formData.append('file', f);
     
-    const res = await fetch('https://catbox.moe/user/api.php', {
+    // tmpfiles.org allow CORS file upload
+    const res = await fetch('https://tmpfiles.org/api/v1/upload', {
       method: 'POST',
       body: formData,
-      // Catbox hỗ trợ CORS cho upload file tĩnh
     });
     
     if (!res.ok) throw new Error('Máy chủ lưu trữ từ chối kết nối');
-    const url = await res.text();
+    const data = await res.json();
+    const url = data.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
     
     state.bgMusicBase64 = null; // Trống trơn để Firebase không bị quá nặng
     state.bgMusicPath = url;    // Dùng URL trực tiếp
     document.getElementById('bgMusicPath').value = url;
     
     const sizeMB = (f.size / (1024 * 1024)).toFixed(2);
-    statusEl.innerHTML = `✅ Đã tải thành công <b>${f.name}</b> (${sizeMB} MB) lên Đám mây!`;
+    statusEl.innerHTML = `✅ Đã tải chờ thành công <b>${f.name}</b> (${sizeMB} MB)! Firebase sẽ liên kết tới file này.`;
     statusEl.style.color = '#6ddd8a';
     markDirty();
   } catch (err) {
