@@ -1167,6 +1167,14 @@ async function generateShareLink() {
 
     mainCfg.createdAt = new Date().toISOString();
     
+    // Lưu ảnh Mẫu 2 nếu có
+    const tpl2ImgsCompressed = [];
+    const tpl2Raw = state.tpl2Images || [];
+    for (let i = 0; i < tpl2Raw.length; i++) {
+      btnList.forEach(btn => btn.textContent = `⏳ Nén ảnh hoa ${i+1}/${tpl2Raw.length}...`);
+      tpl2ImgsCompressed.push(await compressImg(tpl2Raw[i], 300, 300, 0.7));
+    }
+    
     // Gộp tất cả dữ liệu (sphereImages, tpl2Images) vào một khối JSON để lưu
     const validSphere = sphereCompressed.filter(Boolean);
     const validTpl2 = tpl2ImgsCompressed.filter(Boolean);
