@@ -721,66 +721,30 @@ function signOut() {
   </div>
 
 
-  <!-- ── Chia sẻ Link ── -->
-  <div class="card">
-    <div class="card-header">
-      <span class="card-icon">🔗</span>
-      <span class="card-title">Tạo Link & Chia Sẻ</span>
-    </div>
-    <div class="card-body">
-      <div style="margin-bottom:12px;color:var(--muted);font-size:13px">
-        Hệ thống sẽ tải toàn bộ hình ảnh và cấu hình lên máy chủ, sau đó trả cho bạn một đường link duy nhất (không có link chung).
+  <!-- Share Modal (Hidden by default) -->
+  <div id="shareModalOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:center;justify-content:center;padding:15px;backdrop-filter:blur(5px)">
+    <div style="background:#2d0f2a;border-radius:16px;padding:24px;width:100%;max-width:420px;border:1px solid rgba(255,105,180,0.5);box-shadow:0 10px 30px rgba(0,0,0,0.5);max-height:90vh;overflow-y:auto">
+      <h3 style="margin-top:0;color:#ff69b4;text-align:center;font-family:'Pacifico',cursive;font-size:24px">Gửi Tặng Yêu Thương 🎁</h3>
+      <input type="hidden" id="qrUrl"> <!- Link đích cho QR - >
+      
+      <div style="margin-bottom:20px;">
+        <label style="font-size:14px;color:rgba(255,255,255,0.9)">1. Sao chép link để gửi</label>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <input type="text" id="genLinkBox" readonly style="flex:1;font-size:12px;padding:10px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.2);color:#ffb6c1" onclick="this.select()">
+          <button class="btn-qr-gen" style="min-width:70px;padding:0 12px;border-radius:8px" onclick="copyGenLink()">📋 Link</button>
+        </div>
       </div>
-      <button class="btn-modal-qr" style="width:100%;padding:14px;font-size:16px" onclick="generateShareLink()">
-        ☁️ Tạo Link Chia Sẻ
-      </button>
 
-      <!-- Link kết quả (ban đầu ẩn, hiện ra khi tạo xong) -->
-      <div id="genLinkResult" style="display:none;margin-top:20px;padding-top:20px;border-top:1px dashed var(--border)">
-        <label>Link món quà của bạn (Gửi cho người nhận)</label>
-        <div style="display:flex;gap:8px;align-items:stretch">
-          <input type="text" id="genLinkBox" readonly style="flex:1;font-size:12px;cursor:pointer;color:#ff69b4" onclick="this.select()">
-          <button class="btn-qr-gen" style="flex-shrink:0;padding:10px 14px" onclick="copyGenLink()">📋 Copy</button>
+      <div style="margin-bottom:16px;">
+        <label style="font-size:14px;color:rgba(255,255,255,0.9)">2. Hoặc tải thiệp QR</label>
+        
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px" id="qrTplBtns">
+          <button class="btn-qr-gen" style="padding:7px 14px;font-size:12px;flex:1" data-tpl="heart" onclick="pickQrTpl(this)">❤️ Trái Tim</button>
+          <button class="btn-qr-gen" style="padding:7px 14px;font-size:12px;background:rgba(255,105,180,0.15);color:var(--pink-light);box-shadow:none;flex:1" data-tpl="women1" onclick="pickQrTpl(this)">🌸 Phụ Nữ 1</button>
+          <button class="btn-qr-gen" style="padding:7px 14px;font-size:12px;background:rgba(255,105,180,0.15);color:var(--pink-light);box-shadow:none;flex:1" data-tpl="women2" onclick="pickQrTpl(this)">🌹 Phụ Nữ 2</button>
         </div>
-        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn-qr-gen" style="flex:1;padding:9px;font-size:13px" onclick="openGenLink()">👁️ Mở xem link</button>
-          <button class="btn-modal-qr" style="flex:1;padding:9px;font-size:13px" onclick="makeQrFromGenLink()">💞 Tạo QR cho link</button>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- ── Tạo QR & Thiếp ── -->
-  <div class="card">
-    <div class="card-header">
-      <span class="card-icon">📱</span>
-      <span class="card-title">Tạo thiếp QR</span>
-    </div>
-    <div class="card-body">
-      <div>
-        <label>Link món quà (URL)</label>
-        <div class="qr-url-row">
-          <input type="url" id="qrUrl" placeholder="https://... hoặc http://192.168.x.x:8181">
-          <button class="btn-qr-gen" onclick="triggerQr()" id="qrGenBtn">✨ Tạo QR</button>
-        </div>
-        <div class="hint-url">
-          💡 Test nội bộ: <strong>http://localhost:8181</strong>
-          <button class="copy-fast" onclick="document.getElementById('qrUrl').value='http://localhost:8181';triggerQr()">Dùng</button>
-          &nbsp;|&nbsp; Mạng LAN: <strong id="qrLanIp">đang dò...</strong>
-          <button class="copy-fast" onclick="useLanIp()">Dùng</button>
-        </div>
-      </div>
-      <div>
-        <label>Khung thiếp</label>
-        <div style="display:flex;flex-wrap:wrap;gap:8px" id="qrTplBtns">
-          <button class="btn-qr-gen" style="padding:7px 14px;font-size:12px" data-tpl="heart" onclick="pickQrTpl(this)">❤️ Trái Tim</button>
-          <button class="btn-qr-gen" style="padding:7px 14px;font-size:12px;background:rgba(255,105,180,0.15);color:var(--pink-light);box-shadow:none" data-tpl="women1" onclick="pickQrTpl(this)">🌸 Phụ Nữ 1</button>
-          <button class="btn-qr-gen" style="padding:7px 14px;font-size:12px;background:rgba(255,105,180,0.15);color:var(--pink-light);box-shadow:none" data-tpl="women2" onclick="pickQrTpl(this)">🌹 Phụ Nữ 2</button>
-        </div>
-      </div>
-      <div id="qrColorRow">
-        <label>Màu QR</label>
-        <div style="display:flex;gap:10px">
+        <div style="display:flex;gap:10px;margin-top:8px" id="qrColorRow">
           <button class="btn-qr-gen" id="qrColRed" style="flex:1;padding:8px" onclick="pickQrCol('red')">
             <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#e72626;vertical-align:middle;margin-right:6px"></span>Đỏ
           </button>
@@ -788,44 +752,40 @@ function signOut() {
             <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#fff;border:1px solid #888;vertical-align:middle;margin-right:6px"></span>Trắng
           </button>
         </div>
-      </div>
-      <div id="qrCaptionRow">
-        <label>Chữ dưới QR <span style="font-weight:400;text-transform:none">(tuỳ chọn)</span></label>
-        <input type="text" id="qrCaption" placeholder="Lời chúc...">
-      </div>
-      <div class="qr-preview-wrap">
-        <div class="qr-placeholder" id="qrPlaceholder">
-          <div style="font-size:40px">💐</div>
-          <div style="font-size:13px">Nhập URL rồi nhấn ✨ Tạo QR</div>
-        </div>
-        <div id="qrPreviewBox" style="display:none;width:100%;max-width:300px;aspect-ratio:500/580;background-size:contain;background-position:center;background-repeat:no-repeat;position:relative;margin:0 auto">
-          <div id="qrCaptionDisplay" style="position:absolute;bottom:0;left:0;right:0;text-align:center;padding:0 12px 8px;font-family:'Dancing Script',cursive;font-size:clamp(1em,3vw,1.6em);color:#d90429;font-weight:700;display:none"></div>
-        </div>
-        <div id="qrLoading" style="display:none;color:var(--pink-light);font-size:13px;padding:16px 0;display:none;align-items:center;gap:8px">
-          <div style="width:18px;height:18px;border:2px solid rgba(255,105,180,0.2);border-top-color:var(--pink);border-radius:50%;animation:spin .7s linear infinite"></div>
-          Đang tạo...
+
+        <input type="text" id="qrCaption" placeholder="Lời chúc in trên thiệp (tuỳ chọn)" onchange="triggerQr()" style="margin-top:10px;width:calc(100% - 24px)">
+        
+        <!-- Preview QR -->
+        <div class="qr-preview-wrap" style="margin-top:16px;background:none;border:1px dashed rgba(255,105,180,0.4)">
+          <div id="qrPlaceholder" style="display:none"></div>
+          <div id="qrLoading" style="display:none;color:var(--pink-light);font-size:13px;padding:16px 0;align-items:center;justify-content:center;gap:8px">
+            <div style="width:18px;height:18px;border:2px solid rgba(255,105,180,0.2);border-top-color:var(--pink);border-radius:50%;animation:spin .7s linear infinite"></div>
+            Đang tạo QR...
+          </div>
+          <div id="qrPreviewBox" style="display:none;width:100%;max-width:300px;aspect-ratio:500/580;background-size:contain;background-position:center;background-repeat:no-repeat;position:relative;margin:0 auto">
+            <div id="qrCaptionDisplay" style="position:absolute;bottom:0;left:0;right:0;text-align:center;padding:0 12px 8px;font-family:'Dancing Script',cursive;font-size:clamp(1em,3vw,1.6em);color:#d90429;font-weight:700;display:none"></div>
+          </div>
         </div>
       </div>
-      <div id="qrActions" style="display:none;gap:10px;flex-wrap:wrap;margin-top:4px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08)">
-        <button class="btn-dl" style="flex:1;min-width:140px" onclick="dlQrNew()">⬇️ Tải thiếp PNG</button>
-        <button class="btn-qr-gen" style="flex:1;min-width:110px;background:rgba(255,105,180,0.15);color:var(--pink-light);box-shadow:none" onclick="triggerQr()">🔄 Tạo lại</button>
+      
+      <div style="display:flex;gap:10px;margin-top:20px">
+        <button class="btn-qr-gen" style="flex:1;background:#555" onclick="document.getElementById('shareModalOverlay').style.display='none'">Đóng</button>
+        <button class="btn-dl" style="flex:2" onclick="dlQrNew()">⬇️ Tải Thiệp QR Về</button>
       </div>
     </div>
-
-
-</div><!-- /container -->
+  </div>
 
 </div><!-- /container -->
 
 <!-- Save Bar -->
 <div class="save-bar" style="display:flex;justify-content:space-between;align-items:center;">
-  <div class="save-status" id="saveStatus">Chưa lưu thay đổi</div>
+  <div class="save-status" id="saveStatus">Mọi thứ đã sẵn sàng</div>
   <div style="display:flex;gap:10px;">
-    <button class="btn-save" onclick="saveAndPreviewLocal()" id="btnPreview" style="background:#555">
+    <button class="btn-save" onclick="saveAndPreviewLocal()" id="btnPreview" style="background:rgba(255,255,255,0.15)">
       👁️ Lưu & Xem thử
     </button>
     <button class="btn-save" onclick="generateShareLink()" id="btnSaveBottom" style="background:#d90429">
-      ☁️ XUẤT LINK GỬI ĐI
+      🚀 TẠO LINK CHIA SẺ
     </button>
   </div>
 </div>
@@ -1177,9 +1137,7 @@ async function generateShareLink() {
 
   const btnList = [document.querySelector('[onclick="generateShareLink()"]'), document.getElementById('btnSaveBottom')].filter(Boolean);
   const origTexts = btnList.map(b => b.textContent);
-  
   btnList.forEach(b => { b.disabled = true; b.textContent = '⏳ Đang xử lý...'; });
-  document.getElementById('genLinkResult').style.display = 'none';
 
   try {
     // ── Nén ảnh base64 ──
@@ -1266,8 +1224,9 @@ async function generateShareLink() {
     const link = `${window.location.origin}/${linkPath}?id=${docRef.id}`;
 
     document.getElementById('genLinkBox').value = link;
-    document.getElementById('genLinkResult').style.display = 'block';
-    document.getElementById('genLinkResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    document.getElementById('qrUrl').value = link;
+    document.getElementById('shareModalOverlay').style.display = 'flex';
+    triggerQr();
 
   } catch(e) {
     console.error(e);
@@ -1280,20 +1239,17 @@ async function generateShareLink() {
 function copyGenLink() {
   const v = document.getElementById('genLinkBox').value;
   navigator.clipboard.writeText(v).then(() => {
-    const b = document.querySelector('#genLinkResult .btn-qr-gen');
-    b.textContent = '✓ Đã copy!';
-    setTimeout(() => b.textContent = '📋 Copy', 1800);
+    const b = document.querySelector('button[onclick="copyGenLink()"]');
+    if (b) {
+      b.textContent = '✓ Đã copy!';
+      setTimeout(() => b.textContent = '📋 Link', 1800);
+    }
   });
 }
 
 function openGenLink() {
   const v = document.getElementById('genLinkBox').value;
   if (v) window.open(v, '_blank');
-}
-
-function makeQrFromGenLink() {
-  const v = document.getElementById('genLinkBox').value;
-  if (v) window.open('heartqr.html?link=' + encodeURIComponent(v), '_blank');
 }
 
 function openPreview() {
