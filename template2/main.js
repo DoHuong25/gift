@@ -86,6 +86,15 @@ async function fetchSettings(configId) {
     if (!doc.exists) throw new Error('Gift not found');
     const data = doc.data();
     
+    // Fetch images from subcollection
+    let images = [];
+    try {
+      const imgDoc = await _fbDb.collection('gifts').doc(configId).collection('images').doc('tpl2').get();
+      if (imgDoc.exists) {
+         images = imgDoc.data().imgs || [];
+      }
+    } catch(e) {}
+    
     // Convert to lovegift format
     return {
       title: data.letterCaption || 'Chúc mừng Ngày Quốc tế Phụ nữ 🌷',
@@ -93,13 +102,32 @@ async function fetchSettings(configId) {
       instructionText: 'Chạm vào hoa để xem lời nhắn',
       modalTitle: data.passcodeTitle || 'Chúc Mừng Ngày 8/3 ❤️',
       modalContent: data.letterText || 'Gửi đến em những lời chúc tốt đẹp nhất!',
-      image: data.letterImage || null,
+      image: images.length > 0 ? images : null,
       music: data.bgMusic || null
     };
   } catch (e) {
     console.error('Failed to fetch settings from Firebase:', e);
     return null;
   }
+}
+
+// ---- INDEXEDDB FOR PREVIEW ----
+async function loadPreviewData() {
+  return new Promise(resolve => {
+    try {
+      const r = indexedDB.open('WomensDayPreviewDB', 1);
+      r.onsuccess = e => {
+        const db = e.target.result;
+        try {
+          const tx = db.transaction('preview', 'readonly');
+          const req = tx.objectStore('preview').get('config');
+          req.onsuccess = () => resolve(req.result || null);
+          req.onerror = () => resolve(null);
+        } catch(e) { resolve(null); }
+      };
+      r.onerror = () => resolve(null);
+    } catch(e) { resolve(null); }
+  });
 }
 
 // ---- HÀM LẤY THAM SỐ TỪ URL ----
@@ -255,7 +283,23 @@ onload = async () => {
     // Nếu có ?id= thì gọi API lấy settings trước
     const urlParams = new URLSearchParams(window.location.search);
     const configId = urlParams.get('id');
-    if (configId) {
+    const isPreview = urlParams.get('preview');
+
+    if (isPreview) {
+        console.log('🔄 Loading preview settings from IDB...');
+        const previewData = await loadPreviewData();
+        if (previewData) {
+            apiSettings = {
+                title: previewData.letterCaption || 'Chúc mừng Ngày Quốc tế Phụ nữ 🌷',
+                messages: previewData.morphTexts || ['happy', "women's day", 'em iu'],
+                instructionText: 'Chạm vào hoa để xem lời nhắn',
+                modalTitle: previewData.passcodeTitle || 'Chúc Mừng Ngày 8/3 ❤️',
+                modalContent: previewData.letterText || 'Gửi đến em những lời chúc tốt đẹp nhất!',
+                image: previewData.tpl2Images && previewData.tpl2Images.length > 0 ? previewData.tpl2Images : null,
+                music: previewData.bgMusic || null
+            };
+        }
+    } else if (configId) {
         console.log('🔄 Fetching settings from API for id:', configId);
         apiSettings = await fetchSettings(configId);
         console.log('✅ API settings loaded:', apiSettings);

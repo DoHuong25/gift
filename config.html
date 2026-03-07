@@ -488,6 +488,7 @@ function signOut() {
           // Ẩn ảnh quả cầu (vì mẫu 2 ko dùng tới)
           document.getElementById('cardSphere').style.display = isTpl2 ? 'none' : 'block';
           // Ẩn hiệu ứng hạt
+          document.getElementById('cardParticle').style.display = isTpl2 ? 'none' : 'block';
           // Ẩn/hiện tùy chỉnh riêng mẫu 2
           document.getElementById('cardTpl2Options').style.display = isTpl2 ? 'block' : 'none';
           // Ẩn cấu hình Mẫu 1 (Lá thư tình)
@@ -598,8 +599,16 @@ function signOut() {
         <input type="text" id="tpl2Title" placeholder="Chúc mừng Ngày Quốc tế Phụ nữ 🌷" value="Chúc mừng Ngày Quốc tế Phụ nữ 🌷" oninput="markDirty()">
       </div>
       <div>
+        <label>Các dòng chữ gõ tự động bên dưới (cách nhau bởi dấu phẩy)</label>
+        <input type="text" id="tpl2Messages" placeholder="8/3 hạnh phúc nhé, Gửi tặng em bó hoa thật đẹp!" value="8/3 hạnh phúc nhé, Gửi tặng em bó hoa thật đẹp!" oninput="markDirty()">
+      </div>
+      <div>
         <label>Tiêu đề Modal (khi mở hoa)</label>
         <input type="text" id="tpl2ModalTitle" placeholder="Chúc Mừng Ngày 8/3 ❤️" value="Chúc Mừng Ngày 8/3 ❤️" oninput="markDirty()">
+      </div>
+      <div>
+        <label>Nội dung lời chúc trong Modal</label>
+        <textarea id="tpl2ModalContent" placeholder="Viết lời chúc..." oninput="markDirty()"></textarea>
       </div>
       <div>
         <label>Ảnh bay lên (chọn nhiều ảnh) — ảnh này sẽ hiện ở popup</label>
@@ -1090,16 +1099,21 @@ function buildConfig() {
     enableSphereFlyingImages: state.sphereImages.length > 0,
     enableLetter:     true,
     passcode:         document.getElementById('passcodeVal').value || '0308',
-    passcodeTitle:    'Nhập mật khẩu',
+    passcodeTitle:    document.getElementById('tpl2ModalTitle').value || 'Chúc Mừng Ngày 8/3 ❤️',
     passcodeSubtitle: 'Mở món quà đặc biệt',
-    morphTexts:       [...state.morphTexts],
+    morphTexts:       document.getElementById('cardTpl2Options').style.display !== 'none' 
+                        ? document.getElementById('tpl2Messages').value.split(',').map(s=>s.trim()).filter(Boolean)
+                        : [...state.morphTexts],
     particleImage:    state.particleImage,
     sphereImages:     [...state.sphereImages],
+    tpl2Images:       state.tpl2Images ? [...state.tpl2Images] : [],
     letter: {
       text:    document.getElementById('letterText').value,
       image:   state.letterImage,
       caption: document.getElementById('letterCaption').value || '♥',
     },
+    letterCaption: document.getElementById('tpl2Title').value || 'Chúc mừng Ngày Quốc tế Phụ nữ 🌷',
+    letterText: document.getElementById('cardTpl2Options').style.display !== 'none' ? document.getElementById('tpl2ModalContent').value : document.getElementById('letterText').value,
     bgMusic:  state.bgMusicBase64 || state.bgMusicPath,
     bgVolume: parseFloat(document.getElementById('bgVolume').value),
   };
@@ -1134,11 +1148,14 @@ let _currentPreviewUrl = window.location.origin;
 function buildPreviewUrl() {
   // Nếu đang chạy trên Vercel/domain thật → dùng luôn
   const origin = window.location.origin;
-  if (!origin.includes('localhost') && !origin.includes('127.0.0.1')) return origin;
+  const tplOpt = document.querySelector('input[name="templateOpt"]:checked').value;
+  const linkPath = tplOpt === '2' ? '/template2/' : '/';
+  
+  if (!origin.includes('localhost') && !origin.includes('127.0.0.1')) return origin + linkPath;
   // Local → thử dùng LAN IP
   const lan = document.getElementById('qrLanIp')?.textContent || '';
   const isLan = lan && lan !== 'đang dò...' && lan !== 'không xác định';
-  return isLan ? `http://${lan}:8181` : origin;
+  return (isLan ? `http://${lan}:8181` : origin) + linkPath;
 }
 
 function showSavedModal() {
@@ -1372,6 +1389,10 @@ async function init() {
   // Populate Mẫu 2 UI
   if (cfg.letterCaption) document.getElementById('tpl2Title').value = cfg.letterCaption;
   if (cfg.passcodeTitle) document.getElementById('tpl2ModalTitle').value = cfg.passcodeTitle;
+  if (cfg.letterText) document.getElementById('tpl2ModalContent').value = cfg.letterText;
+  if (cfg.morphTexts && cfg.morphTexts.length > 0) {
+    document.getElementById('tpl2Messages').value = cfg.morphTexts.join(', ');
+  }
   
   if (saved && saved.tpl2Images) {
     state.tpl2Images = saved.tpl2Images;
