@@ -12,7 +12,7 @@
 <script>
 const SUPABASE_URL = "https://mptafoqsqphjqhfxrqtw.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wdGFmb3FzcXBoanFoZnhycXR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4OTYxNDAsImV4cCI6MjA4ODQ3MjE0MH0.IzmJfVJQLruafqwdZC6qcLFlLRT6fiUMCNrcHBDBviA";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Fallback defaults
 const CONFIG_DEFAULTS = {
@@ -21,7 +21,6 @@ const CONFIG_DEFAULTS = {
   particleImage: 'assets/pngegg.png',
   bgMusic:       'musics/thuongemdengia.mp3'
 };
-
 </script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -979,7 +978,7 @@ async function handleMusicFile(input) {
     const filePath = `music_${Date.now()}_${generateUUID()}.${ext}`;
     
     // Upload thẳng lên Supabase Storage bucket 'files'
-    const { data: uploadData, error: uploadError } = await supabase
+    const { data: uploadData, error: uploadError } = await supabaseClient
       .storage
       .from('files')
       .upload(filePath, f, {
@@ -990,7 +989,7 @@ async function handleMusicFile(input) {
     if (uploadError) throw uploadError;
 
     // Lấy link dùng chung
-    const { data: publicData } = supabase
+    const { data: publicData } = supabaseClient
       .storage
       .from('files')
       .getPublicUrl(filePath);
@@ -1186,7 +1185,7 @@ async function generateShareLink() {
     // Gửi lên bảng gifts trong Supabase
     const docId = generateUUID();
     
-    const { error: sbError } = await supabase
+    const { error: sbError } = await supabaseClient
       .from('gifts')
       .insert([
         { id: docId, data: mainCfg }
