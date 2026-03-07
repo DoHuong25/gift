@@ -1107,7 +1107,7 @@ async function saveAndPreviewLocal() {
 }
 
 // ════════════════════════════════════════════════════════════
-// TẠO LINK RIÊNG — Firestore only (không cần Storage)
+// TẠO LINK RIÊNG — Supabase Database
 // ════════════════════════════════════════════════════════════
 async function generateShareLink() {
 
@@ -1207,7 +1207,7 @@ async function generateShareLink() {
 
   } catch(e) {
     console.error(e);
-    alert('\u274c L\u1ed7i: ' + e.message + '\n\nKi\u1ec3m tra: Firestore \u0111\u00e3 b\u1eadt ch\u01b0a?');
+    alert('\u274c L\u1ed7i: ' + e.message + '\n\nKi\u1ec3m tra: Supabase \u0111\u00e3 c\u1ea5p quy\u1ec1n Insert ch\u01b0a?');
   }
   btnList.forEach((b, i) => { b.disabled = false; b.textContent = origTexts[i] || 'Tạo Link'; });
 }
