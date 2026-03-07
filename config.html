@@ -1226,8 +1226,11 @@ async function generateShareLink() {
     const mainCfg = buildConfig();
     
     // Ghép thêm metadata cần thiết cho Cloud
-    mainCfg.letterImage = letterImg || CONFIG_DEFAULTS.letterImage;
-    mainCfg.particleImage = particleImg || CONFIG_DEFAULTS.particleImage;
+    const configDefaults = window.DEFAULT_APP_CONFIG || {};
+    mainCfg.letterImage = letterImg || configDefaults.letterImage || null;
+    mainCfg.particleImage = particleImg || configDefaults.particleImage || null;
+    if (mainCfg.letter) mainCfg.letter.image = mainCfg.letterImage;
+
     mainCfg.sphereCount = sphereCompressed.filter(Boolean).length;
     mainCfg.createdAt = new Date().toISOString();
     
