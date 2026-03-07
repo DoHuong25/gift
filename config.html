@@ -1220,26 +1220,19 @@ async function generateShareLink() {
       state.particleImageBase64 || null, 128, 128, 0.7
     );
 
-    // Tách lưu: doc chính không có sphereImages
+    // Sử dụng cấu hình từ buildConfig()
     btn.textContent = '⬆ Đang lưu lên mây...';
-    const mainCfg = {
-      letterText:    state.letterText    || '',
-      letterCaption: state.letterCaption || '♥',
-      morphTexts:    state.morphTexts    || ['happy', "women's day", 'em iu'],
-      bgVolume:      state.bgVolume      ?? 0.55,
-      enablePasscode: !!state.enablePasscode,
-      passcode:      state.passcode      || '0308',
-      letterImage:   letterImg  || CONFIG_DEFAULTS.letterImage,
-      particleImage: particleImg || CONFIG_DEFAULTS.particleImage,
-      bgMusic:       state.bgMusicPath || CONFIG_DEFAULTS.bgMusic,
-      sphereCount:   sphereCompressed.filter(Boolean).length,
-      
-      // Tpl2 special fields
-      letterCaption: document.getElementById('tpl2Title').value || 'Chúc mừng Ngày Quốc tế Phụ nữ 🌷',
-      passcodeTitle: document.getElementById('tpl2ModalTitle').value || 'Chúc Mừng Ngày 8/3 ❤️',
-      
-      createdAt:     new Date().toISOString()
-    };
+    const mainCfg = buildConfig();
+    
+    // Ghép thêm metadata cần thiết cho Cloud
+    mainCfg.letterImage = letterImg || CONFIG_DEFAULTS.letterImage;
+    mainCfg.particleImage = particleImg || CONFIG_DEFAULTS.particleImage;
+    mainCfg.sphereCount = sphereCompressed.filter(Boolean).length;
+    mainCfg.createdAt = new Date().toISOString();
+    
+    // Bỏ đi mảng ảnh lớn vì dữ liệu này được lưu ở subcollection
+    delete mainCfg.sphereImages;
+    delete mainCfg.tpl2Images;
     const docRef = await _fbDb.collection('gifts').add(mainCfg);
 
     // Lưu sphere images vào sub-collection, batch 10 ảnh/doc
