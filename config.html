@@ -676,8 +676,8 @@ function signOut() {
     </div>
   </div>
 
-  <!-- ── Mật khẩu ── -->
-  <div class="card">
+  <!-- ── Mật khẩu (Än theo y/c) ── -->
+  <div class="card" style="display:none">
     <div class="card-header">
       <span class="card-icon">🔐</span>
       <span class="card-title">Mật khẩu</span>
@@ -711,39 +711,26 @@ function signOut() {
   <div class="card">
     <div class="card-header">
       <span class="card-icon">🔗</span>
-      <span class="card-title">Chia sẻ món quà</span>
+      <span class="card-title">Tạo Link & Chia Sẻ</span>
     </div>
     <div class="card-body">
-      <div>
-        <label>Link để gửi cho người nhận</label>
-        <div style="display:flex;gap:8px;align-items:stretch">
-          <input type="text" id="shareLinkDisplay" readonly
-            style="flex:1;cursor:pointer;font-size:13px" onclick="this.select()">
-          <button class="btn-qr-gen" style="flex-shrink:0;padding:10px 16px;white-space:nowrap" onclick="copyShareLink()" id="copyShareBtn">📋 Sao chép</button>
-        </div>
-        <div class="hint-url" style="margin-top:6px">
-          💡 Mạng LAN: <strong id="qrLanIp">đang dò...</strong>
-          <button class="copy-fast" onclick="useLanIpShare()">Dùng IP này</button>
-        </div>
+      <div style="margin-bottom:12px;color:var(--muted);font-size:13px">
+        Hệ thống sẽ tải toàn bộ hình ảnh và cấu hình lên máy chủ, sau đó trả cho bạn một đường link duy nhất (không có link chung).
       </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn-modal-qr" style="flex:1;min-width:150px;padding:13px" onclick="generateShareLink()">
-          🔗 Tạo link riêng của tôi
-        </button>
-        <button class="btn-modal-preview" style="flex:1;min-width:120px;padding:13px" onclick="window.open('index.html?preview=1','_blank')">
-          👁️ Xem thử món quà
-        </button>
-      </div>
-      <!-- Link kết quả -->
-      <div id="genLinkResult" style="display:none">
-        <label>Link riêng của bạn (copy & gửi cho người nhận)</label>
+      <button class="btn-modal-qr" style="width:100%;padding:14px;font-size:16px" onclick="generateShareLink()">
+        ☁️ Tạo Link Chia Sẻ
+      </button>
+
+      <!-- Link kết quả (ban đầu ẩn, hiện ra khi tạo xong) -->
+      <div id="genLinkResult" style="display:none;margin-top:20px;padding-top:20px;border-top:1px dashed var(--border)">
+        <label>Link món quà của bạn (Gửi cho người nhận)</label>
         <div style="display:flex;gap:8px;align-items:stretch">
           <input type="text" id="genLinkBox" readonly style="flex:1;font-size:12px;cursor:pointer;color:#ff69b4" onclick="this.select()">
           <button class="btn-qr-gen" style="flex-shrink:0;padding:10px 14px" onclick="copyGenLink()">📋 Copy</button>
         </div>
         <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn-qr-gen" style="flex:1;padding:9px;font-size:13px" onclick="openGenLink()">👁️ Xem thử</button>
-          <button class="btn-modal-qr" style="flex:1;padding:9px;font-size:13px" onclick="makeQrFromGenLink()">💞 Tạo QR với link này</button>
+          <button class="btn-qr-gen" style="flex:1;padding:9px;font-size:13px" onclick="openGenLink()">👁️ Mở xem link</button>
+          <button class="btn-modal-qr" style="flex:1;padding:9px;font-size:13px" onclick="makeQrFromGenLink()">💞 Tạo QR cho link</button>
         </div>
       </div>
     </div>
@@ -814,34 +801,19 @@ function signOut() {
 
 </div><!-- /container -->
 
-<!-- Modal sau khi lưu -->
-<div class="modal-overlay" id="savedModal" onclick="if(event.target===this)closeSavedModal()">
-  <div class="modal-box">
-    <div class="modal-check">✅</div>
-    <div class="modal-title">Lưu thành công!</div>
-    <div class="modal-sub">Chọn việc bạn muốn làm tiếp:</div>
-    <div class="modal-url" id="modalUrlBox">
-      <span id="modalUrlText" style="flex:1;word-break:break-all"></span>
-      <button class="copy-url-btn2" onclick="copyModalUrl()">Sao chép</button>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-modal-qr" onclick="openHeartQR()">
-        💞 Tạo thiếp QR đẹp &amp; tải về
-      </button>
-      <button class="btn-modal-preview" onclick="openPreview()">
-        👁️ Xem thử món quà
-      </button>
-      <button class="btn-modal-close" onclick="closeSavedModal()">Tiếp tục chỉnh sửa</button>
-    </div>
-  </div>
-</div>
+</div><!-- /container -->
 
 <!-- Save Bar -->
-<div class="save-bar">
+<div class="save-bar" style="display:flex;justify-content:space-between;align-items:center;">
   <div class="save-status" id="saveStatus">Chưa lưu thay đổi</div>
-  <button class="btn-save" onclick="saveConfig()" id="btnSave">
-    💾 Lưu &amp; Xem thử
-  </button>
+  <div style="display:flex;gap:10px;">
+    <button class="btn-save" onclick="saveAndPreviewLocal()" id="btnPreview" style="background:#555">
+      👁️ Lưu & Xem thử
+    </button>
+    <button class="btn-save" onclick="generateShareLink()" id="btnSaveBottom" style="background:#d90429">
+      ☁️ XUẤT LINK GỬI ĐI
+    </button>
+  </div>
 </div>
 
 <script>
@@ -1135,90 +1107,24 @@ function buildConfig() {
 }
 
 // ════════════════════════════════════════════════════════════
-// SAVE
+// PREVIEW ONLY (Local IDB)
 // ════════════════════════════════════════════════════════════
-async function saveConfig() {
-  const btn = document.getElementById('btnSave');
+async function saveAndPreviewLocal() {
+  const btn = document.getElementById('btnPreview');
+  const origText = btn.textContent;
   btn.disabled = true; btn.textContent = '⏳ Đang lưu...';
   try {
     const cfg = buildConfig();
     await saveToIDB(cfg);
     dirty = false;
-    const st = document.getElementById('saveStatus');
-    st.textContent = '✓ Đã lưu!'; st.className = 'save-status ok';
-    btn.textContent = '💾 Lưu & Xem thử';
-    btn.disabled = false;
-    showSavedModal();
+    document.getElementById('saveStatus').textContent = '✓ Đã lưu tạm!';
+    document.getElementById('saveStatus').className = 'save-status ok';
+    openPreview(); // Opens ?preview=1
   } catch(e) {
     console.error(e);
-    document.getElementById('saveStatus').textContent = '❌ Lỗi lưu: ' + e.message;
-    btn.textContent = '💾 Lưu & Xem thử';
-    btn.disabled = false;
+    alert('Lỗi: ' + e.message);
   }
-}
-
-// ─── URL helpers ──────────────────────────────────────────
-let _currentPreviewUrl = window.location.origin;
-
-function buildPreviewUrl() {
-  // Nếu đang chạy trên Vercel/domain thật → dùng luôn
-  const origin = window.location.origin;
-  const tplOpt = document.querySelector('input[name="templateOpt"]:checked').value;
-  const linkPath = tplOpt === '2' ? '/template2/' : '/';
-  
-  if (!origin.includes('localhost') && !origin.includes('127.0.0.1')) return origin + linkPath;
-  // Local → thử dùng LAN IP
-  const lan = document.getElementById('qrLanIp')?.textContent || '';
-  const isLan = lan && lan !== 'đang dò...' && lan !== 'không xác định';
-  return (isLan ? `http://${lan}:8181` : origin) + linkPath;
-}
-
-function showSavedModal() {
-  _currentPreviewUrl = buildPreviewUrl();
-  document.getElementById('modalUrlText').textContent = _currentPreviewUrl;
-  document.getElementById('savedModal').classList.add('show');
-}
-
-function closeSavedModal() {
-  document.getElementById('savedModal').classList.remove('show');
-}
-
-function copyModalUrl() {
-  navigator.clipboard.writeText(_currentPreviewUrl).then(() => {
-    const btn = document.querySelector('.copy-url-btn2');
-    btn.textContent = '✓ Đã sao'; setTimeout(() => btn.textContent = 'Sao chép', 1500);
-  });
-}
-
-function openHeartQR() {
-  const url = 'heartqr.html?link=' + encodeURIComponent(_currentPreviewUrl);
-  window.open(url, '_blank');
-}
-
-// ── Share section helpers ──
-function _getShareLink() {
-  return document.getElementById('shareLinkDisplay').value || window.location.origin;
-}
-
-function copyShareLink() {
-  const link = _getShareLink();
-  navigator.clipboard.writeText(link).then(() => {
-    const btn = document.getElementById('copyShareBtn');
-    btn.textContent = '✓ Đã sao chép!';
-    setTimeout(() => btn.textContent = '📋 Sao chép', 1800);
-  });
-}
-
-function useLanIpShare() {
-  const ip = document.getElementById('qrLanIp').textContent;
-  if (ip && ip !== 'đang dò...' && ip !== 'không xác định') {
-    document.getElementById('shareLinkDisplay').value = `http://${ip}:8181`;
-  }
-}
-
-function openHeartQRShare() {
-  const link = _getShareLink();
-  window.open('heartqr.html?link=' + encodeURIComponent(link), '_blank');
+  btn.disabled = false; btn.textContent = origText;
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1228,9 +1134,10 @@ async function generateShareLink() {
   // Yêu cầu đăng nhập
   if (!_currentUser) { signInGoogle(); return; }
 
-  const btn = document.querySelector('[onclick="generateShareLink()"]');
-  const origText = btn.textContent;
-  btn.disabled = true; btn.textContent = '⏳ Đang xử lý...';
+  const textBtnBot = document.getElementById('btnSaveBottom').textContent;
+  const btnList = [document.querySelector('[onclick="generateShareLink()"]'), document.getElementById('btnSaveBottom')].filter(Boolean);
+  
+  btnList.forEach(b => { b.disabled = true; b.textContent = '⏳ Đang xử lý...'; });
   document.getElementById('genLinkResult').style.display = 'none';
 
   try {
