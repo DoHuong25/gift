@@ -1175,8 +1175,8 @@ async function generateShareLink() {
   // Yêu cầu đăng nhập
   if (!_currentUser) { signInGoogle(); return; }
 
-  const textBtnBot = document.getElementById('btnSaveBottom').textContent;
   const btnList = [document.querySelector('[onclick="generateShareLink()"]'), document.getElementById('btnSaveBottom')].filter(Boolean);
+  const origTexts = btnList.map(b => b.textContent);
   
   btnList.forEach(b => { b.disabled = true; b.textContent = '⏳ Đang xử lý...'; });
   document.getElementById('genLinkResult').style.display = 'none';
@@ -1206,12 +1206,12 @@ async function generateShareLink() {
       ? state.sphereImages : (CONFIG_DEFAULTS.sphereImages || []);
     const sphereCompressed = [];
     for (let i = 0; i < imgs.length; i++) {
-      btn.textContent = `⏳ Nén ảnh cầu ${i+1}/${imgs.length}...`;
+      btnList.forEach(b => b.textContent = `⏳ Nén ảnh cầu ${i+1}/${imgs.length}...`);
       sphereCompressed.push(await compressImg(imgs[i], 180, 180, 0.6));
     }
 
-    // N\u00e9n letter image: 500x500 q=0.72
-    btn.textContent = '\u23f3 N\u00e9n \u1ea3nh th\u01b0...';
+    // Nén letter image: 500x500 q=0.72
+    btnList.forEach(b => b.textContent = '⏳ Nén ảnh thư...');
     const letterImg = await compressImg(
       state.letterImage || state.letterImageBase64 || null, 500, 500, 0.72
     );
@@ -1222,7 +1222,7 @@ async function generateShareLink() {
     );
 
     // Sử dụng cấu hình từ buildConfig()
-    btn.textContent = '⬆ Đang lưu lên mây...';
+    btnList.forEach(b => b.textContent = '⬆ Đang lưu lên mây...');
     const mainCfg = buildConfig();
     
     // Ghép thêm metadata cần thiết cho Cloud
@@ -1240,7 +1240,7 @@ async function generateShareLink() {
     const validSphere = sphereCompressed.filter(Boolean);
     const BATCH = 10;
     for (let b = 0; b * BATCH < validSphere.length; b++) {
-      btn.textContent = `⬆ Lưu ảnh cầu batch ${b+1}...`;
+      btnList.forEach(btn => btn.textContent = `⬆ Lưu ảnh cầu batch ${b+1}...`);
       await _fbDb.collection('gifts').doc(docRef.id)
         .collection('images').doc(`sphere_${b}`).set({ imgs: validSphere.slice(b*BATCH, (b+1)*BATCH) });
     }
@@ -1249,7 +1249,7 @@ async function generateShareLink() {
     const tpl2ImgsCompressed = [];
     const tpl2Raw = state.tpl2Images || [];
     for (let i = 0; i < tpl2Raw.length; i++) {
-      btn.textContent = `⏳ Nén ảnh hoa ${i+1}/${tpl2Raw.length}...`;
+      btnList.forEach(btn => btn.textContent = `⏳ Nén ảnh hoa ${i+1}/${tpl2Raw.length}...`);
       tpl2ImgsCompressed.push(await compressImg(tpl2Raw[i], 300, 300, 0.7));
     }
     const validTpl2 = tpl2ImgsCompressed.filter(Boolean);
@@ -1270,7 +1270,7 @@ async function generateShareLink() {
     console.error(e);
     alert('\u274c L\u1ed7i: ' + e.message + '\n\nKi\u1ec3m tra: Firestore \u0111\u00e3 b\u1eadt ch\u01b0a?');
   }
-  btn.disabled = false; btn.textContent = origText;
+  btnList.forEach((b, i) => { b.disabled = false; b.textContent = origTexts[i] || 'Tạo Link'; });
 }
 
 
