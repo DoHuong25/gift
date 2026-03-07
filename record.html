@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎬 Tải video món quà</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:#080010;font-family:'Inter',sans-serif;min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px 16px;gap:20px;
+  background-image:radial-gradient(ellipse at top,rgba(100,0,180,0.18),transparent 60%);
+  color:#fff;
+}
+
+h1{font-size:1.5rem;font-weight:700;text-align:center}
+h1 span{color:#ff69b4}
+
+/* Iframe gift hidden (ghi ngầm) */
+#giftFrame{
+  position:fixed;left:-9999px;top:0;
+  width:390px;height:844px; /* kích thước chuẩn iPhone 12 */
+  border:none;pointer-events:none;
+}
+
+/* Card chính */
+.card{
+  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);
+  border-radius:20px;padding:28px 24px;max-width:400px;width:100%;
+  display:flex;flex-direction:column;gap:18px;
+  backdrop-filter:blur(12px);
+}
+
+.card-icon{font-size:48px;text-align:center}
+.card-title{font-size:20px;font-weight:700;text-align:center}
+.card-sub{font-size:13px;color:rgba(255,255,255,0.5);text-align:center;line-height:1.6}
+
+/* Duration picker */
+.dur-row{display:flex;gap:8px;justify-content:center}
+.dur-btn{
+  padding:8px 18px;border-radius:50px;border:1px solid rgba(255,255,255,0.15);
+  background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.7);
+  font-size:13px;font-weight:600;cursor:pointer;transition:.2s;
+}
+.dur-btn.active{background:linear-gradient(135deg,#9b4dff,#6b1fbf);color:#fff;border-color:transparent}
+.dur-btn:hover:not(.active){background:rgba(255,255,255,0.12)}
+
+/* Progress */
+.progress-wrap{display:none;flex-direction:column;gap:8px;width:100%}
+.progress-bar-bg{background:rgba(255,255,255,0.1);border-radius:50px;height:8px;overflow:hidden}
+.progress-bar{height:100%;width:0%;background:linear-gradient(90deg,#ff69b4,#9b4dff);border-radius:50px;transition:width .5s linear}
+.progress-text{font-size:13px;color:rgba(255,255,255,0.6);text-align:center}
+.rec-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff4d4d;animation:blink .8s infinite;margin-right:6px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.15}}
+
+/* Buttons */
+.btn{
+  width:100%;padding:15px;border:none;border-radius:12px;
+  font-size:15px;font-weight:700;cursor:pointer;transition:.2s;
+}
+.btn-start{
+  background:linear-gradient(135deg,#ff69b4,#9b4dff);color:#fff;
+  box-shadow:0 4px 22px rgba(155,77,255,0.35);
+}
+.btn-start:hover{transform:translateY(-2px);box-shadow:0 6px 30px rgba(155,77,255,0.5)}
+.btn-start:disabled{opacity:.5;transform:none;cursor:not-allowed}
+.btn-back{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.1)}
+.btn-back:hover{background:rgba(255,255,255,0.12);color:#fff}
+
+.warn{
+  background:rgba(255,165,0,0.08);border:1px solid rgba(255,165,0,0.2);
+  border-radius:10px;padding:12px;font-size:12px;color:rgba(255,200,100,0.8);
+  line-height:1.7;
+}
+</style>
+</head>
+<body>
+
+<!-- Gift chạy ngầm để ghi -->
+<iframe id="giftFrame" src="about:blank"></iframe>
+
+<div class="card">
+  <div class="card-icon">🎬</div>
+  <div class="card-title">Tải video món quà</div>
+  <div class="card-sub">Nhấn một lần → tự chạy animation → tự tải file video về</div>
+
+  <!-- Chọn thời lượng -->
+  <div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.45);margin-bottom:10px;text-align:center">THỜI LƯỢNG VIDEO</div>
+    <div class="dur-row">
+      <button class="dur-btn" data-s="30" onclick="pickDur(this)">30s</button>
+      <button class="dur-btn active" data-s="45" onclick="pickDur(this)">45s</button>
+      <button class="dur-btn" data-s="60" onclick="pickDur(this)">60s</button>
+      <button class="dur-btn" data-s="90" onclick="pickDur(this)">90s</button>
+    </div>
+  </div>
+
+  <!-- Progress (ẩn lúc đầu) -->
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-text" id="progressText"><span class="rec-dot"></span>Đang ghi...</div>
+    <div class="progress-bar-bg"><div class="progress-bar" id="progressBar"></div></div>
+  </div>
+
+  <button class="btn btn-start" id="btnStart" onclick="startRecord()">
+    ⬇️ Tải video về
+  </button>
+
+  <div class="warn">
+    ⚡ Nếu video không có âm thanh, trình duyệt chưa hỗ trợ ghi âm từ tab. Bạn có thể dùng <strong>OBS Studio</strong> hoặc <strong>Windows Game Bar (Win+G)</strong> để quay kèm âm.
+  </div>
+
+  <button class="btn btn-back" onclick="history.back()">← Quay lại</button>
+</div>
+
+<script>
+let duration = 45; // seconds
+
+function pickDur(btn) {
+  document.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  duration = parseInt(btn.dataset.s);
+}
+
+async function startRecord() {
+  const btn = document.getElementById('btnStart');
+  btn.disabled = true;
+  btn.textContent = '⏳ Đang khởi động...';
+
+  // Load gift vào iframe ẩn
+  const iframe = document.getElementById('giftFrame');
+  iframe.src = 'index.html?preview=1&autoplay=1&t=' + Date.now();
+
+  // Chờ iframe load + animation init
+  await new Promise(r => {
+    iframe.onload = () => setTimeout(r, 3500); // đợi 3.5s sau load
+  });
+
+  btn.textContent = '⏳ Đang tìm canvas...';
+
+  // Tìm canvas WebGL trong iframe (cùng origin → truy cập được)
+  let canvas = null;
+  try {
+    const idoc = iframe.contentDocument;
+    const all = Array.from(idoc.querySelectorAll('canvas'));
+    // Lấy canvas lớn nhất (Three.js WebGL)
+    canvas = all.sort((a, b) => (b.width * b.height) - (a.width * a.height))[0];
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = '⬇️ Tải video về';
+    alert('❌ Không ghi được từ canvas: ' + e.message + '\nVui lòng dùng OBS hoặc Win+G.');
+    return;
+  }
+
+  if (!canvas || !canvas.captureStream) {
+    btn.disabled = false;
+    btn.textContent = '⬇️ Tải video về';
+    alert('❌ Trình duyệt không hỗ trợ ghi canvas. Hãy dùng Chrome và thử lại.');
+    return;
+  }
+
+  // Bắt đầu ghi
+  let stream;
+  try {
+    stream = canvas.captureStream(30);
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = '⬇️ Tải video về';
+    alert('❌ Lỗi ghi: ' + e.message);
+    return;
+  }
+
+  const mime = ['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm']
+    .find(m => MediaRecorder.isTypeSupported(m)) || 'video/webm';
+
+  const chunks = [];
+  const mr = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 6_000_000 });
+  mr.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+  mr.onstop = () => {
+    const blob = new Blob(chunks, { type: mime });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `mon-qua-8-3-${Date.now()}.webm`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+
+    // Reset UI
+    btn.disabled = false;
+    btn.textContent = '⬇️ Tải video về';
+    document.getElementById('progressWrap').style.display = 'none';
+    document.getElementById('progressBar').style.width = '0%';
+    iframe.src = 'about:blank';
+  };
+
+  mr.start(500);
+
+  // Hiện progress
+  document.getElementById('progressWrap').style.display = 'flex';
+  btn.textContent = '🔴 Đang ghi ' + duration + 's...';
+
+  let elapsed = 0;
+  const tick = setInterval(() => {
+    elapsed++;
+    const pct = (elapsed / duration * 100).toFixed(1);
+    document.getElementById('progressBar').style.width = pct + '%';
+    document.getElementById('progressText').innerHTML =
+      `<span class="rec-dot"></span>Đang ghi... ${elapsed}s / ${duration}s`;
+    if (elapsed >= duration) {
+      clearInterval(tick);
+      mr.stop();
+      stream.getTracks().forEach(t => t.stop());
+    }
+  }, 1000);
+}
+</script>
+</body>
+</html>

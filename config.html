@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>✏️ Chỉnh sửa Món Quà Nhỏ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Pacifico&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --pink:       #ff69b4;
+    --pink-light: #ffb6c1;
+    --pink-dark:  #d44f8a;
+    --bg:         #0d0610;
+    --surface:    #1a0d1e;
+    --surface2:   #251229;
+    --border:     rgba(255,105,180,0.18);
+    --text:       #f0e6f0;
+    --muted:      rgba(240,230,240,0.5);
+    --radius:     14px;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0 0 80px;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, #1a0d1e 0%, #2a0d2a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+    backdrop-filter: blur(20px);
+  }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .header-icon { font-size: 28px; }
+  .header-title { font-family: 'Pacifico', cursive; font-size: 1.3rem; color: var(--pink-light); }
+  .header-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .btn-preview {
+    background: linear-gradient(135deg, var(--pink), var(--pink-dark));
+    color: #fff; border: none; border-radius: 50px;
+    padding: 10px 22px; font-size: 14px; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 4px 20px rgba(255,105,180,0.35);
+    transition: all .2s;
+  }
+  .btn-preview:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(255,105,180,0.5); }
+  .btn-preview:active { transform: translateY(0); }
+
+  /* ── Layout ── */
+  .container { max-width: 780px; margin: 0 auto; padding: 28px 20px; display: flex; flex-direction: column; gap: 20px; }
+
+  /* ── Card ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface2);
+  }
+  .card-icon { font-size: 20px; }
+  .card-title { font-size: 15px; font-weight: 600; color: var(--pink-light); }
+  .card-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+
+  /* ── Form Elements ── */
+  label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; display: block; margin-bottom: 6px; }
+
+  input[type="text"], input[type="number"], input[type="password"], textarea, select {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    padding: 11px 14px;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+    resize: vertical;
+  }
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--pink);
+    box-shadow: 0 0 0 3px rgba(255,105,180,0.12);
+  }
+  textarea { min-height: 130px; line-height: 1.6; }
+
+  /* ── Toggle ── */
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; }
+  .toggle-label { font-size: 14px; color: var(--text); }
+  .toggle-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .toggle {
+    position: relative; width: 48px; height: 26px;
+    flex-shrink: 0;
+  }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; inset: 0; background: rgba(255,255,255,0.1);
+    border-radius: 26px; cursor: pointer; transition: .3s;
+  }
+  .toggle-slider::before {
+    content: ''; position: absolute;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #fff; left: 3px; top: 3px;
+    transition: .3s; box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+  .toggle input:checked + .toggle-slider { background: var(--pink); }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(22px); }
+
+  /* ── Image Upload Zone ── */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s;
+    position: relative;
+  }
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: var(--pink);
+    background: rgba(255,105,180,0.05);
+  }
+  .upload-zone input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer;
+    width: 100%; height: 100%;
+  }
+  .upload-icon { font-size: 32px; margin-bottom: 8px; }
+  .upload-text { font-size: 14px; color: var(--muted); }
+  .upload-text strong { color: var(--pink-light); }
+
+  /* ── Image Preview ── */
+  .img-preview {
+    width: 100%; max-height: 220px; object-fit: contain;
+    border-radius: 10px; border: 1px solid var(--border);
+    background: rgba(0,0,0,0.3);
+    display: none;
+  }
+  .img-preview.show { display: block; }
+  .img-actions { display: flex; gap: 8px; margin-top: 8px; }
+  .btn-sm {
+    padding: 6px 14px; font-size: 12px; font-weight: 600;
+    border: none; border-radius: 20px; cursor: pointer; transition: all .15s;
+  }
+  .btn-remove { background: rgba(255,80,80,0.15); color: #ff8080; }
+  .btn-remove:hover { background: rgba(255,80,80,0.25); }
+  .btn-change { background: rgba(255,105,180,0.15); color: var(--pink-light); }
+  .btn-change:hover { background: rgba(255,105,180,0.25); }
+
+  /* ── Sphere Images Grid ── */
+  .sphere-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px;
+    margin-top: 6px;
+  }
+  .sphere-item {
+    position: relative; aspect-ratio: 1;
+    border-radius: 10px; overflow: hidden;
+    border: 1px solid var(--border);
+    background: rgba(0,0,0,0.3);
+    cursor: pointer;
+  }
+  .sphere-item img { width: 100%; height: 100%; object-fit: cover; }
+  .sphere-item .remove-btn {
+    position: absolute; top: 4px; right: 4px;
+    background: rgba(0,0,0,0.6); color: #fff;
+    border: none; border-radius: 50%;
+    width: 22px; height: 22px;
+    font-size: 14px; line-height: 22px; text-align: center;
+    cursor: pointer; display: none;
+  }
+  .sphere-item:hover .remove-btn { display: block; }
+  .sphere-add {
+    aspect-ratio: 1; border-radius: 10px;
+    border: 2px dashed var(--border);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; transition: all .2s; font-size: 28px; color: var(--muted);
+    position: relative;
+  }
+  .sphere-add:hover { border-color: var(--pink); color: var(--pink); background: rgba(255,105,180,0.05); }
+  .sphere-add input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .sphere-count { font-size: 11px; margin-top: 4px; color: var(--muted); }
+
+  /* ── Morph Tags ── */
+  .tag-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .tag {
+    background: rgba(255,105,180,0.15);
+    border: 1px solid rgba(255,105,180,0.3);
+    color: var(--pink-light);
+    border-radius: 20px; padding: 4px 12px;
+    font-size: 13px; display: flex; align-items: center; gap: 6px;
+    cursor: default;
+  }
+  .tag .del { cursor: pointer; font-size: 16px; color: var(--muted); line-height: 1; }
+  .tag .del:hover { color: #ff8080; }
+  .tag-input-row { display: flex; gap: 8px; }
+  .tag-input-row input { flex: 1; }
+  .btn-add-tag {
+    background: rgba(255,105,180,0.2); color: var(--pink-light);
+    border: 1px solid rgba(255,105,180,0.3);
+    border-radius: 10px; padding: 0 16px; font-size: 20px;
+    cursor: pointer; transition: all .15s; flex-shrink: 0;
+  }
+  .btn-add-tag:hover { background: rgba(255,105,180,0.35); }
+
+  /* ── Save Bar ── */
+  .save-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(13,6,16,0.95); border-top: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+    padding: 14px 24px; display: flex; align-items: center; justify-content: space-between;
+    z-index: 200;
+  }
+  .save-status { font-size: 13px; color: var(--muted); }
+  .save-status.ok { color: #6ddd8a; }
+  .btn-save {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    color: #fff; border: none; border-radius: 50px;
+    padding: 11px 28px; font-size: 14px; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 4px 16px rgba(46,204,113,0.3);
+    transition: all .2s;
+  }
+  .btn-save:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(46,204,113,0.45); }
+  .btn-save:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+  /* ── Modal sau khi lưu ── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 500;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px; opacity: 0; pointer-events: none; transition: opacity .3s;
+  }
+  .modal-overlay.show { opacity: 1; pointer-events: all; }
+  .modal-box {
+    background: #1a0d1e; border: 1px solid rgba(255,105,180,0.3);
+    border-radius: 20px; padding: 28px 24px;
+    max-width: 420px; width: 100%; display: flex; flex-direction: column; gap: 18px;
+    transform: translateY(30px); transition: transform .3s;
+  }
+  .modal-overlay.show .modal-box { transform: translateY(0); }
+  .modal-check { font-size: 52px; text-align: center; }
+  .modal-title { font-size: 20px; font-weight: 700; color: #6ddd8a; text-align: center; }
+  .modal-sub { font-size: 13px; color: var(--muted); text-align: center; line-height: 1.6; }
+  .modal-url {
+    background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px 13px; font-size: 12px; color: var(--pink-light);
+    word-break: break-all; display: flex; align-items: center; gap: 8px;
+  }
+  .copy-url-btn2 {
+    background: rgba(255,105,180,0.2); border: none; color: var(--pink-light);
+    padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer;
+    flex-shrink: 0; transition: .15s;
+  }
+  .copy-url-btn2:hover { background: rgba(255,105,180,0.35); }
+  .modal-actions { display: flex; flex-direction: column; gap: 10px; }
+  .btn-modal-qr {
+    background: linear-gradient(135deg, #ff9db8, #d44f8a); color: #fff;
+    border: none; border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+    box-shadow: 0 4px 18px rgba(255,105,180,0.35); transition: .2s;
+  }
+  .btn-modal-qr:hover { transform: translateY(-2px); box-shadow: 0 6px 26px rgba(255,105,180,0.5); }
+  .btn-modal-preview {
+    background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: var(--text);
+    border-radius: 12px; padding: 11px; font-size: 13px; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px;
+    transition: .2s;
+  }
+  .btn-modal-preview:hover { background: rgba(255,255,255,0.1); }
+  .btn-modal-close {
+    background: none; border: none; color: var(--muted); font-size: 13px;
+    cursor: pointer; text-align: center; transition: .15s;
+  }
+  .btn-modal-close:hover { color: var(--text); }
+
+  /* ── Volume Slider ── */
+  input[type="range"] {
+    -webkit-appearance: none; width: 100%;
+    height: 4px; border-radius: 4px;
+    background: rgba(255,255,255,0.1); outline: none; border: none;
+    padding: 0;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 18px; height: 18px;
+    border-radius: 50%; background: var(--pink);
+    cursor: pointer; box-shadow: 0 0 8px rgba(255,105,180,0.4);
+  }
+  .range-row { display: flex; align-items: center; gap: 12px; }
+  .range-val { font-size: 13px; color: var(--pink-light); font-weight: 600; min-width: 30px; text-align: right; }
+
+  /* ── Music file ── */
+  .music-row { display: flex; gap: 8px; align-items: flex-start; }
+  .music-row input { flex: 1; }
+  .btn-music-file { position: relative; flex-shrink: 0; }
+  .btn-music-file input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+  .btn-file {
+    background: rgba(255,105,180,0.15); color: var(--pink-light);
+    border: 1px solid rgba(255,105,180,0.3);
+    border-radius: 10px; padding: 11px 14px; font-size: 13px; font-weight: 600;
+    cursor: pointer; white-space: nowrap;
+  }
+
+  /* Divider */
+  .divider { height: 1px; background: var(--border); }
+
+  /* Passcode dots preview */
+  .passcode-preview { display: flex; gap: 10px; justify-content: center; margin-top: 8px; }
+  .pc-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); transition: .2s; }
+  .pc-dot.filled { background: #fff; border-color: #fff; }
+
+  /* QR Section */
+  .qr-url-row { display: flex; gap: 8px; }
+  .qr-url-row input { flex: 1; }
+  .btn-qr-gen {
+    background: linear-gradient(135deg, #ff9db8, #d44f8a); color: #fff;
+    border: none; border-radius: 10px; padding: 11px 18px; font-size: 13px;
+    font-weight: 700; cursor: pointer; white-space: nowrap; transition: .2s;
+  }
+  .btn-qr-gen:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(255,105,180,0.4); }
+  .btn-qr-gen:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+  .color-opts { display: flex; gap: 10px; flex-wrap: wrap; }
+  .color-opt {
+    width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+    border: 3px solid transparent; transition: .2s;
+  }
+  .color-opt.active, .color-opt:hover { border-color: #fff; transform: scale(1.15); }
+  .qr-preview-wrap { display: flex; justify-content: center; flex-direction: column; align-items: center; gap: 12px; }
+  #qrShareCanvas { border-radius: 14px; max-width: 100%; box-shadow: 0 8px 32px rgba(255,105,180,0.3); display:none; }
+  .qr-placeholder { width:100%; aspect-ratio:1; max-height:280px; border:2px dashed var(--border); border-radius:14px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; color:var(--muted); }
+  .qr-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn-dl { background: linear-gradient(135deg,#2ecc71,#27ae60); color:#fff; border:none; border-radius:10px; padding:9px 18px; font-size:13px; font-weight:700; cursor:pointer; transition:.2s; }
+  .btn-dl:hover { transform:translateY(-1px); }
+  .hint-url { font-size:12px; color:var(--muted); margin-top:5px; line-height:1.5; }
+  .hint-url strong { color:var(--pink-light); }
+  .copy-fast { background:rgba(255,105,180,0.15); border:none; color:var(--pink-light); padding:3px 8px; border-radius:6px; font-size:11px; cursor:pointer; margin-left:4px; }
+  .copy-fast:hover { background:rgba(255,105,180,0.25); }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <div class="header-icon">🎁</div>
+    <div>
+      <div class="header-title">Chỉnh sửa Quà 8/3</div>
+      <div class="header-sub">Tùy chỉnh nội dung • Lưu • Xem thử</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px">
+    <a href="share.html" style="text-decoration:none">
+      <button class="btn-preview" style="background:linear-gradient(135deg,#ff9db8,#d44f8a)">
+        📱 Tạo QR
+      </button>
+    </a>
+    <button class="btn-preview" onclick="openPreview()">
+      👁️ Xem thử
+    </button>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="container">
+
+  <!-- ── Lá thư ── -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-icon">💌</span>
+      <span class="card-title">Lá thư tình</span>
+    </div>
+    <div class="card-body">
+      <div>
+        <label>Nội dung thư</label>
+        <textarea id="letterText" placeholder="Viết lời nhắn ngọt ngào..."></textarea>
+      </div>
+      <div>
+        <label>Chú thích ảnh (caption)</label>
+        <input type="text" id="letterCaption" placeholder="♥" value="♥">
+      </div>
+      <div>
+        <label>Ảnh trong thư</label>
+        <div class="upload-zone" id="letterImgZone">
+          <input type="file" accept="image/*" id="letterImgInput" onchange="handleLetterImg(this)">
+          <div id="letterImgPlaceholder">
+            <div class="upload-icon">🖼️</div>
+            <div class="upload-text">Click hoặc kéo ảnh vào đây<br><strong>JPG, PNG, WEBP</strong></div>
+          </div>
+          <img id="letterImgPreview" class="img-preview">
+        </div>
+        <div class="img-actions" id="letterImgActions" style="display:none">
+          <button class="btn-sm btn-remove" onclick="removeLetterImg()">✕ Xóa ảnh</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Ảnh quả cầu ── -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-icon">🔮</span>
+      <span class="card-title">Ảnh quả cầu 3D</span>
+    </div>
+    <div class="card-body">
+      <div>
+        <label>Ảnh kỷ niệm (<span id="sphereCount">0</span>/30) — kéo thả hoặc chọn nhiều ảnh cùng lúc</label>
+        <div class="sphere-grid" id="sphereGrid">
+          <div class="sphere-add">
+            <input type="file" accept="image/*" multiple onchange="handleSphereImgs(this)">
+            <div>+</div>
+            <div class="sphere-count">Thêm ảnh</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Lời chúc hạt ── -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-icon">✨</span>
+      <span class="card-title">Lời chúc hiệu ứng hạt</span>
+    </div>
+    <div class="card-body">
+      <div>
+        <label>Các chữ hiện dạng hạt (theo thứ tự) — VD: happy → women's day → em iu</label>
+        <div class="tag-list" id="morphTags"></div>
+        <div class="tag-input-row">
+          <input type="text" id="morphInput" placeholder="Nhập lời chúc rồi nhấn Enter hoặc +" onkeydown="if(event.key==='Enter')addMorphTag()">
+          <button class="btn-add-tag" onclick="addMorphTag()">+</button>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px">💡 Mỗi tag là một màn hình hạt. Kéo thẻ để sắp xếp thứ tự.</div>
+      </div>
+      <div class="divider"></div>
+      <div>
+        <label>Ảnh bó hoa (morph thành hạt sau lời chúc cuối)</label>
+        <div class="upload-zone" id="particleImgZone">
+          <input type="file" accept="image/*" id="particleImgInput" onchange="handleParticleImg(this)">
+          <div id="particleImgPlaceholder">
+            <div class="upload-icon">🌹</div>
+            <div class="upload-text">Click để chọn ảnh bó hoa<br><strong>Nên dùng PNG nền trong suốt</strong></div>
+          </div>
+          <img id="particleImgPreview" class="img-preview">
+        </div>
+        <div class="img-actions" id="particleImgActions" style="display:none">
+          <button class="btn-sm btn-remove" onclick="removeParticleImg()">✕ Xóa ảnh</button>
+          <button class="btn-sm btn-change" onclick="document.getElementById('particleImgInput').click()">🔄 Đổi ảnh</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Nhạc nền ── -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-icon">🎵</span>
+      <span class="card-title">Nhạc nền</span>
+    </div>
+    <div class="card-body">
+      <div>
+        <label>File nhạc (MP3)</label>
+        <div class="music-row">
+          <input type="text" id="bgMusicPath" placeholder="musics/thuongemdengia.mp3" readonly>
+          <div class="btn-music-file">
+            <input type="file" accept="audio/*" onchange="handleMusicFile(this)">
+            <div class="btn-file">📁 Chọn file</div>
+          </div>
+        </div>
+        <div id="musicStatus" style="font-size:12px;color:var(--muted);margin-top:6px"></div>
+      </div>
+      <div>
+        <label>Âm lượng</label>
+        <div class="range-row">
+          <input type="range" id="bgVolume" min="0" max="1" step="0.05" value="0.55"
+            oninput="document.getElementById('volVal').textContent=Math.round(this.value*100)+'%'">
+          <span class="range-val" id="volVal">55%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Mật khẩu ── -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-icon">🔐</span>
+      <span class="card-title">Mật khẩu</span>
+    </div>
+    <div class="card-body">
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">Bật màn hình mật khẩu</div>
+          <div class="toggle-sub">Yêu cầu nhập PIN 4 số trước khi mở quà</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="enablePasscode" onchange="updatePasscodeUI()">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div id="passcodeSection" style="display:none">
+        <label>Mã PIN (4 chữ số)</label>
+        <input type="text" id="passcodeVal" maxlength="4" placeholder="0308"
+          oninput="this.value=this.value.replace(/\D/g,'').slice(0,4); updatePcDots()"
+          style="letter-spacing:12px;font-size:22px;font-weight:700;text-align:center">
+        <div class="passcode-preview" id="pcDots">
+          <div class="pc-dot" data-i="0"></div><div class="pc-dot" data-i="1"></div>
+          <div class="pc-dot" data-i="2"></div><div class="pc-dot" data-i="3"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ── Chia sẻ Link ── -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-icon">🔗</span>
+      <span class="card-title">Chia sẻ món quà</span>
+    </div>
+    <div class="card-body">
+      <div>
+        <label>Link để gửi cho người nhận</label>
+        <div style="display:flex;gap:8px;align-items:stretch">
+          <input type="text" id="shareLinkDisplay" value="http://localhost:8181" readonly
+            style="flex:1;cursor:pointer;font-size:13px" onclick="this.select()">
+          <button class="btn-qr-gen" style="flex-shrink:0;padding:10px 16px;white-space:nowrap" onclick="copyShareLink()" id="copyShareBtn">📋 Sao chép</button>
+        </div>
+        <div class="hint-url" style="margin-top:6px">
+          💡 Mạng LAN: <strong id="qrLanIp">đang dò...</strong>
+          <button class="copy-fast" onclick="useLanIpShare()">Dùng IP này</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn-modal-qr" style="flex:1;min-width:150px;padding:13px" onclick="openHeartQRShare()">
+          💞 Tạo thiếp QR đẹp
+        </button>
+        <button class="btn-modal-preview" style="flex:1;min-width:120px;padding:13px" onclick="window.open('index.html?preview=1','_blank')">
+          👁️ Xem thử món quà
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Tạo QR & Thiếp ── -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-icon">📱</span>
+      <span class="card-title">Tạo thiếp QR</span>
+    </div>
+    <div class="card-body">
+      <div>
+        <label>Link món quà (URL)</label>
+        <div class="qr-url-row">
+          <input type="url" id="qrUrl" placeholder="https://... hoặc http://192.168.x.x:8181">
+          <button class="btn-qr-gen" onclick="triggerQr()" id="qrGenBtn">✨ Tạo QR</button>
+        </div>
+        <div class="hint-url">
+          💡 Test nội bộ: <strong>http://localhost:8181</strong>
+          <button class="copy-fast" onclick="document.getElementById('qrUrl').value='http://localhost:8181';triggerQr()">Dùng</button>
+          &nbsp;|&nbsp; Mạng LAN: <strong id="qrLanIp">đang dò...</strong>
+          <button class="copy-fast" onclick="useLanIp()">Dùng</button>
+        </div>
+      </div>
+      <div>
+        <label>Khung thiếp</label>
+        <div style="display:flex;flex-wrap:wrap;gap:8px" id="qrTplBtns">
+          <button class="btn-qr-gen" style="padding:7px 14px;font-size:12px" data-tpl="heart" onclick="pickQrTpl(this)">❤️ Trái Tim</button>
+          <button class="btn-qr-gen" style="padding:7px 14px;font-size:12px;background:rgba(255,105,180,0.15);color:var(--pink-light);box-shadow:none" data-tpl="women1" onclick="pickQrTpl(this)">🌸 Phụ Nữ 1</button>
+          <button class="btn-qr-gen" style="padding:7px 14px;font-size:12px;background:rgba(255,105,180,0.15);color:var(--pink-light);box-shadow:none" data-tpl="women2" onclick="pickQrTpl(this)">🌹 Phụ Nữ 2</button>
+        </div>
+      </div>
+      <div id="qrColorRow">
+        <label>Màu QR</label>
+        <div style="display:flex;gap:10px">
+          <button class="btn-qr-gen" id="qrColRed" style="flex:1;padding:8px" onclick="pickQrCol('red')">
+            <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#e72626;vertical-align:middle;margin-right:6px"></span>Đỏ
+          </button>
+          <button class="btn-qr-gen" id="qrColWhite" style="flex:1;padding:8px;background:rgba(255,105,180,0.15);color:var(--pink-light);box-shadow:none" onclick="pickQrCol('white')">
+            <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#fff;border:1px solid #888;vertical-align:middle;margin-right:6px"></span>Trắng
+          </button>
+        </div>
+      </div>
+      <div id="qrCaptionRow">
+        <label>Chữ dưới QR <span style="font-weight:400;text-transform:none">(tuỳ chọn)</span></label>
+        <input type="text" id="qrCaption" placeholder="Lời chúc...">
+      </div>
+      <div class="qr-preview-wrap">
+        <div class="qr-placeholder" id="qrPlaceholder">
+          <div style="font-size:40px">💐</div>
+          <div style="font-size:13px">Nhập URL rồi nhấn ✨ Tạo QR</div>
+        </div>
+        <div id="qrPreviewBox" style="display:none;width:100%;max-width:300px;aspect-ratio:500/580;background-size:contain;background-position:center;background-repeat:no-repeat;position:relative;margin:0 auto">
+          <div id="qrCaptionDisplay" style="position:absolute;bottom:0;left:0;right:0;text-align:center;padding:0 12px 8px;font-family:'Dancing Script',cursive;font-size:clamp(1em,3vw,1.6em);color:#d90429;font-weight:700;display:none"></div>
+        </div>
+        <div id="qrLoading" style="display:none;color:var(--pink-light);font-size:13px;padding:16px 0;display:none;align-items:center;gap:8px">
+          <div style="width:18px;height:18px;border:2px solid rgba(255,105,180,0.2);border-top-color:var(--pink);border-radius:50%;animation:spin .7s linear infinite"></div>
+          Đang tạo...
+        </div>
+      </div>
+      <div id="qrActions" style="display:none;gap:10px;flex-wrap:wrap;margin-top:4px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08)">
+        <button class="btn-dl" style="flex:1;min-width:140px" onclick="dlQrNew()">⬇️ Tải thiếp PNG</button>
+        <button class="btn-qr-gen" style="flex:1;min-width:110px;background:rgba(255,105,180,0.15);color:var(--pink-light);box-shadow:none" onclick="triggerQr()">🔄 Tạo lại</button>
+      </div>
+    </div>
+
+
+</div><!-- /container -->
+
+<!-- Modal sau khi lưu -->
+<div class="modal-overlay" id="savedModal" onclick="if(event.target===this)closeSavedModal()">
+  <div class="modal-box">
+    <div class="modal-check">✅</div>
+    <div class="modal-title">Lưu thành công!</div>
+    <div class="modal-sub">Chọn việc bạn muốn làm tiếp:</div>
+    <div class="modal-url" id="modalUrlBox">
+      <span id="modalUrlText" style="flex:1;word-break:break-all"></span>
+      <button class="copy-url-btn2" onclick="copyModalUrl()">Sao chép</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-qr" onclick="openHeartQR()">
+        💞 Tạo thiếp QR đẹp &amp; tải về
+      </button>
+      <button class="btn-modal-preview" onclick="openPreview()">
+        👁️ Xem thử món quà
+      </button>
+      <button class="btn-modal-close" onclick="closeSavedModal()">Tiếp tục chỉnh sửa</button>
+    </div>
+  </div>
+</div>
+
+<!-- Save Bar -->
+<div class="save-bar">
+  <div class="save-status" id="saveStatus">Chưa lưu thay đổi</div>
+  <button class="btn-save" onclick="saveConfig()" id="btnSave">
+    💾 Lưu &amp; Xem thử
+  </button>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════
+const state = {
+  letterText:    '',
+  letterCaption: '♥',
+  letterImage:   '',    // base64 or path
+  sphereImages:  [],    // array of base64 or paths
+  morphTexts:    ['happy', "women's day", 'em iu'],
+  particleImage: 'assets/pngegg.png', // path or base64
+  particleImageBase64: null,
+  bgMusicPath:   'musics/thuongemdengia.mp3',
+  bgMusicBase64: null,
+  bgVolume:      0.55,
+  enablePasscode:false,
+  passcode:      '0308',
+};
+
+// ════════════════════════════════════════════════════════════
+// INDEXEDDB
+// ════════════════════════════════════════════════════════════
+const DB_NAME = 'WomensDayPreviewDB', DB_STORE = 'preview', DB_KEY = 'config';
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const r = indexedDB.open(DB_NAME, 1);
+    r.onupgradeneeded = e => e.target.result.createObjectStore(DB_STORE);
+    r.onsuccess = e => resolve(e.target.result);
+    r.onerror   = () => reject(r.error);
+  });
+}
+async function saveToIDB(data) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(DB_STORE, 'readwrite');
+    tx.objectStore(DB_STORE).put(data, DB_KEY);
+    tx.oncomplete = resolve; tx.onerror = reject;
+  });
+}
+async function loadFromIDB() {
+  try {
+    const db = await openDB();
+    return new Promise(resolve => {
+      const tx = db.transaction(DB_STORE, 'readonly');
+      const req = tx.objectStore(DB_STORE).get(DB_KEY);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror   = () => resolve(null);
+    });
+  } catch { return null; }
+}
+
+// ════════════════════════════════════════════════════════════
+// FILE → BASE64
+// ════════════════════════════════════════════════════════════
+function fileToBase64(file) {
+  return new Promise(resolve => {
+    const r = new FileReader();
+    r.onload = e => resolve(e.target.result);
+    r.readAsDataURL(file);
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// LETTER IMAGE
+// ════════════════════════════════════════════════════════════
+async function handleLetterImg(input) {
+  if (!input.files[0]) return;
+  const b64 = await fileToBase64(input.files[0]);
+  state.letterImage = b64;
+  showLetterImgPreview(b64);
+  markDirty();
+}
+function showLetterImgPreview(src) {
+  const img = document.getElementById('letterImgPreview');
+  const ph  = document.getElementById('letterImgPlaceholder');
+  const act = document.getElementById('letterImgActions');
+  img.src = src; img.classList.add('show');
+  ph.style.display = 'none'; act.style.display = 'flex';
+}
+function removeLetterImg() {
+  state.letterImage = '';
+  const img = document.getElementById('letterImgPreview');
+  const ph  = document.getElementById('letterImgPlaceholder');
+  const act = document.getElementById('letterImgActions');
+  img.src = ''; img.classList.remove('show');
+  ph.style.display = ''; act.style.display = 'none';
+  document.getElementById('letterImgInput').value = '';
+  markDirty();
+}
+
+// ════════════════════════════════════════════════════════════
+// PARTICLE IMAGE
+// ════════════════════════════════════════════════════════════
+async function handleParticleImg(input) {
+  if (!input.files[0]) return;
+  const b64 = await fileToBase64(input.files[0]);
+  state.particleImageBase64 = b64;
+  state.particleImage = b64;
+  const img = document.getElementById('particleImgPreview');
+  const ph  = document.getElementById('particleImgPlaceholder');
+  const act = document.getElementById('particleImgActions');
+  img.src = b64; img.classList.add('show');
+  ph.style.display = 'none'; act.style.display = 'flex';
+  markDirty();
+}
+function removeParticleImg() {
+  state.particleImage = 'assets/pngegg.png';
+  state.particleImageBase64 = null;
+  const img = document.getElementById('particleImgPreview');
+  const ph  = document.getElementById('particleImgPlaceholder');
+  const act = document.getElementById('particleImgActions');
+  img.src = ''; img.classList.remove('show');
+  ph.style.display = ''; act.style.display = 'none';
+  document.getElementById('particleImgInput').value = '';
+  markDirty();
+}
+
+// ════════════════════════════════════════════════════════════
+// SPHERE IMAGES
+// ════════════════════════════════════════════════════════════
+async function handleSphereImgs(input) {
+  const files = Array.from(input.files);
+  for (const f of files) {
+    if (state.sphereImages.length >= 30) break;
+    const b64 = await fileToBase64(f);
+    state.sphereImages.push(b64);
+  }
+  renderSphereGrid();
+  markDirty();
+  input.value = '';
+}
+function removeSphereImg(idx) {
+  state.sphereImages.splice(idx, 1);
+  renderSphereGrid();
+  markDirty();
+}
+function renderSphereGrid() {
+  const grid = document.getElementById('sphereGrid');
+  document.getElementById('sphereCount').textContent = state.sphereImages.length;
+  // Remove old items (keep add button last)
+  grid.querySelectorAll('.sphere-item').forEach(el => el.remove());
+  // Insert items before the add button
+  const addBtn = grid.querySelector('.sphere-add');
+  state.sphereImages.forEach((src, i) => {
+    const div = document.createElement('div');
+    div.className = 'sphere-item';
+    div.innerHTML = `<img src="${src}" alt="ảnh ${i+1}">
+      <button class="remove-btn" onclick="removeSphereImg(${i})">✕</button>`;
+    grid.insertBefore(div, addBtn);
+  });
+  // Hide add button if 30 reached
+  addBtn.style.display = state.sphereImages.length >= 30 ? 'none' : '';
+}
+
+// ════════════════════════════════════════════════════════════
+// MORPH TAGS
+// ════════════════════════════════════════════════════════════
+function renderMorphTags() {
+  const list = document.getElementById('morphTags');
+  list.innerHTML = state.morphTexts.map((t, i) =>
+    `<span class="tag">${t}<span class="del" onclick="removeMorphTag(${i})">×</span></span>`
+  ).join('');
+}
+function addMorphTag() {
+  const inp = document.getElementById('morphInput');
+  const val = inp.value.trim();
+  if (!val) return;
+  state.morphTexts.push(val);
+  inp.value = '';
+  renderMorphTags();
+  markDirty();
+}
+function removeMorphTag(i) {
+  state.morphTexts.splice(i, 1);
+  renderMorphTags();
+  markDirty();
+}
+
+// ════════════════════════════════════════════════════════════
+// MUSIC
+// ════════════════════════════════════════════════════════════
+async function handleMusicFile(input) {
+  if (!input.files[0]) return;
+  const f = input.files[0];
+  const statusEl = document.getElementById('musicStatus');
+  statusEl.textContent = `⏳ Đang đọc file ${f.name}...`;
+  const b64 = await fileToBase64(f);
+  state.bgMusicBase64 = b64;
+  state.bgMusicPath = f.name;
+  document.getElementById('bgMusicPath').value = f.name;
+  const sizeKB = Math.round(f.size / 1024);
+  statusEl.textContent = `✅ Đã chọn: ${f.name} (${sizeKB < 1024 ? sizeKB + ' KB' : (sizeKB/1024).toFixed(1) + ' MB'})`;
+  statusEl.style.color = '#6ddd8a';
+  markDirty();
+}
+
+// ════════════════════════════════════════════════════════════
+// PASSCODE UI
+// ════════════════════════════════════════════════════════════
+function updatePasscodeUI() {
+  const on = document.getElementById('enablePasscode').checked;
+  state.enablePasscode = on;
+  document.getElementById('passcodeSection').style.display = on ? '' : 'none';
+  markDirty();
+}
+function updatePcDots() {
+  const val = document.getElementById('passcodeVal').value;
+  state.passcode = val;
+  document.querySelectorAll('.pc-dot').forEach((d, i) => {
+    d.classList.toggle('filled', i < val.length);
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// DIRTY / STATUS
+// ════════════════════════════════════════════════════════════
+let dirty = false;
+function markDirty() {
+  dirty = true;
+  document.getElementById('saveStatus').textContent = '● Có thay đổi chưa lưu';
+  document.getElementById('saveStatus').className = 'save-status';
+}
+
+// ════════════════════════════════════════════════════════════
+// BUILD CONFIG
+// ════════════════════════════════════════════════════════════
+function buildConfig() {
+  return {
+    appTitle:         'Món Quà Nhỏ',
+    appIcon:          'assets/images/icons/couple.png',
+    enableWebsiteInfo:false,
+    enablePasscode:   state.enablePasscode,
+    enableMorphEffect:true,
+    enableSphere:     state.sphereImages.length > 0,
+    enableSphereFlyingImages: state.sphereImages.length > 0,
+    enableLetter:     true,
+    passcode:         document.getElementById('passcodeVal').value || '0308',
+    passcodeTitle:    'Nhập mật khẩu',
+    passcodeSubtitle: 'Mở món quà đặc biệt',
+    morphTexts:       [...state.morphTexts],
+    particleImage:    state.particleImage,
+    sphereImages:     [...state.sphereImages],
+    letter: {
+      text:    document.getElementById('letterText').value,
+      image:   state.letterImage,
+      caption: document.getElementById('letterCaption').value || '♥',
+    },
+    bgMusic:  state.bgMusicBase64 || state.bgMusicPath,
+    bgVolume: parseFloat(document.getElementById('bgVolume').value),
+  };
+}
+
+// ════════════════════════════════════════════════════════════
+// SAVE
+// ════════════════════════════════════════════════════════════
+async function saveConfig() {
+  const btn = document.getElementById('btnSave');
+  btn.disabled = true; btn.textContent = '⏳ Đang lưu...';
+  try {
+    const cfg = buildConfig();
+    await saveToIDB(cfg);
+    dirty = false;
+    const st = document.getElementById('saveStatus');
+    st.textContent = '✓ Đã lưu!'; st.className = 'save-status ok';
+    btn.textContent = '💾 Lưu & Xem thử';
+    btn.disabled = false;
+    showSavedModal();
+  } catch(e) {
+    console.error(e);
+    document.getElementById('saveStatus').textContent = '❌ Lỗi lưu: ' + e.message;
+    btn.textContent = '💾 Lưu & Xem thử';
+    btn.disabled = false;
+  }
+}
+
+// ─── URL helpers ──────────────────────────────────────────
+let _currentPreviewUrl = 'http://localhost:8181';
+
+function buildPreviewUrl() {
+  const lan = document.getElementById('qrLanIp')?.textContent || '';
+  const isLan = lan && lan !== 'đang dò...' && lan !== 'không xác định';
+  return isLan ? `http://${lan}:8181` : 'http://localhost:8181';
+}
+
+function showSavedModal() {
+  _currentPreviewUrl = buildPreviewUrl();
+  document.getElementById('modalUrlText').textContent = _currentPreviewUrl;
+  document.getElementById('savedModal').classList.add('show');
+}
+
+function closeSavedModal() {
+  document.getElementById('savedModal').classList.remove('show');
+}
+
+function copyModalUrl() {
+  navigator.clipboard.writeText(_currentPreviewUrl).then(() => {
+    const btn = document.querySelector('.copy-url-btn2');
+    btn.textContent = '✓ Đã sao'; setTimeout(() => btn.textContent = 'Sao chép', 1500);
+  });
+}
+
+function openHeartQR() {
+  const url = 'heartqr.html?link=' + encodeURIComponent(_currentPreviewUrl);
+  window.open(url, '_blank');
+}
+
+// ── Share section helpers ──
+function _getShareLink() {
+  return document.getElementById('shareLinkDisplay').value || 'http://localhost:8181';
+}
+
+function copyShareLink() {
+  const link = _getShareLink();
+  navigator.clipboard.writeText(link).then(() => {
+    const btn = document.getElementById('copyShareBtn');
+    btn.textContent = '✓ Đã sao chép!';
+    setTimeout(() => btn.textContent = '📋 Sao chép', 1800);
+  });
+}
+
+function useLanIpShare() {
+  const ip = document.getElementById('qrLanIp').textContent;
+  if (ip && ip !== 'đang dò...' && ip !== 'không xác định') {
+    document.getElementById('shareLinkDisplay').value = `http://${ip}:8181`;
+  }
+}
+
+function openHeartQRShare() {
+  const link = _getShareLink();
+  window.open('heartqr.html?link=' + encodeURIComponent(link), '_blank');
+}
+
+function openPreview() {
+  window.open('index.html?preview=1', '_blank');
+}
+
+// ════════════════════════════════════════════════════════════
+// INIT — Load saved config
+// ════════════════════════════════════════════════════════════
+async function init() {
+  // Load DEFAULT_APP_CONFIG from index.html or use defaults
+  let saved = await loadFromIDB();
+
+  // Try to load DEFAULT_APP_CONFIG from the main HTML via fetch
+  if (!saved) {
+    try {
+      const res = await fetch('index.html');
+      const text = await res.text();
+      const match = text.match(/window\.DEFAULT_APP_CONFIG\s*=\s*(\{[\s\S]*?\}\s*;)/);
+      if (match) {
+        // Can't easily eval but let's try the saved IDB first; fallback to hardcoded defaults
+      }
+    } catch {}
+  }
+
+  const cfg = saved || {
+    letterText: "Gửi em,\nAnh sẽ yêu em...",
+    morphTexts: ['happy', "women's day", 'em iu'],
+    sphereImages: [],
+    particleImage: 'assets/pngegg.png',
+    bgMusic: 'musics/thuongemdengia.mp3',
+    bgVolume: 0.55,
+    enablePasscode: false,
+    passcode: '0308',
+    letter: { text: '', image: '', caption: '♥' },
+  };
+
+  // Populate state
+  state.morphTexts   = cfg.morphTexts || ['happy', "women's day", 'em iu'];
+  state.sphereImages = cfg.sphereImages || [];
+  state.particleImage = cfg.particleImage || 'assets/pngegg.png';
+  state.bgMusicPath  = cfg.bgMusic || 'musics/thuongemdengia.mp3';
+  state.bgVolume     = cfg.bgVolume || 0.55;
+  state.enablePasscode = cfg.enablePasscode || false;
+  state.passcode     = cfg.passcode || '0308';
+
+  const letter = cfg.letter || {};
+  state.letterImage   = letter.image || '';
+
+  // Populate UI
+  document.getElementById('letterText').value    = letter.text || '';
+  document.getElementById('letterCaption').value = letter.caption || '♥';
+  document.getElementById('bgMusicPath').value   = state.bgMusicPath;
+  document.getElementById('bgVolume').value      = state.bgVolume;
+  document.getElementById('volVal').textContent  = Math.round(state.bgVolume * 100) + '%';
+  document.getElementById('enablePasscode').checked = state.enablePasscode;
+  document.getElementById('passcodeVal').value   = state.passcode;
+  updatePasscodeUI();
+  updatePcDots();
+
+  // Letter image
+  if (state.letterImage) showLetterImgPreview(state.letterImage);
+
+  // Particle image (nếu là base64 thì hiện preview)
+  if (state.particleImage && state.particleImage.startsWith('data:')) {
+    const img = document.getElementById('particleImgPreview');
+    img.src = state.particleImage; img.classList.add('show');
+    document.getElementById('particleImgPlaceholder').style.display = 'none';
+    document.getElementById('particleImgActions').style.display = 'flex';
+  }
+
+  // Sphere images
+  renderSphereGrid();
+  renderMorphTags();
+
+  // Attach live input listeners
+  document.getElementById('letterText').addEventListener('input', markDirty);
+  document.getElementById('letterCaption').addEventListener('input', markDirty);
+  document.getElementById('bgVolume').addEventListener('input', markDirty);
+
+  document.getElementById('saveStatus').textContent = saved ? '✓ Đã tải config đã lưu' : 'Chưa có thay đổi';
+  document.getElementById('saveStatus').className = saved ? 'save-status ok' : 'save-status';
+}
+
+// Drag & drop
+document.addEventListener('dragover', e => e.preventDefault());
+['letterImgZone','particleImgZone'].forEach(id => {
+  const zone = document.getElementById(id);
+  if (!zone) return;
+  zone.addEventListener('dragover', () => zone.classList.add('drag-over'));
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => { zone.classList.remove('drag-over'); });
+});
+
+window.addEventListener('DOMContentLoaded', init);
+
+// ════════════════════════════════════════════════════════════
+// QR GENERATOR — kĩ thuật deargift (xoay 45°, frame thật)
+// ════════════════════════════════════════════════════════════
+const QR_FRAMES = {
+  heart:  'assets/frames/imageheart.png',
+  heartW: 'assets/frames/baseQRa.png',
+  women1: 'assets/frames/teamplatewomen1.png',
+  women2: 'assets/frames/templatewomen2.png',
+};
+const QR_SCALE = { women1:0.48, women2:0.80, heart:0.65 };
+const QR_OFFSET= { women1:0,    women2:0.13,  heart:0 };
+let _qrTpl   = 'heart';
+let _qrCol   = 'red';
+let _qrRawCV = null; // raw QR canvas
+const _imgCache = {};
+let _qrBusy = false;
+
+function pickQrTpl(btn) {
+  document.querySelectorAll('#qrTplBtns button').forEach(b => {
+    b.style.background = 'rgba(255,105,180,0.15)';
+    b.style.color = 'var(--pink-light)';
+    b.style.boxShadow = 'none';
+  });
+  btn.style.background = 'linear-gradient(135deg,#ff9db8,#d44f8a)';
+  btn.style.color = '#fff';
+  btn.style.boxShadow = '0 4px 14px rgba(255,105,180,0.35)';
+  _qrTpl = btn.dataset.tpl;
+  document.getElementById('qrColorRow').style.display   = _qrTpl === 'heart' ? '' : 'none';
+  document.getElementById('qrCaptionRow').style.display = _qrTpl === 'heart' ? '' : 'none';
+  if (_qrRawCV) _renderQrCard();
+}
+
+function pickQrCol(c) {
+  _qrCol = c;
+  const r = document.getElementById('qrColRed');
+  const w = document.getElementById('qrColWhite');
+  r.style.background = c==='red' ? 'linear-gradient(135deg,#ff4d6d,#c9184a)' : 'rgba(255,105,180,0.15)';
+  r.style.color = c==='red' ? '#fff' : 'var(--pink-light)';
+  r.style.boxShadow = c==='red' ? '0 4px 14px rgba(255,105,180,0.35)' : 'none';
+  w.style.background = c==='white' ? 'rgba(200,200,200,0.3)' : 'rgba(255,105,180,0.15)';
+  w.style.color = 'var(--pink-light)';
+  if (_qrRawCV) _renderQrCard();
+}
+
+function _loadImg(src) {
+  if (_imgCache[src]) return Promise.resolve(_imgCache[src]);
+  return new Promise((res, rej) => {
+    const img = new Image(); img.crossOrigin = 'anonymous';
+    img.onload = () => { _imgCache[src] = img; res(img); };
+    img.onerror = rej; img.src = src;
+  });
+}
+
+async function _makeQrRaw(url) {
+  if (!window.qrcode) {
+    await new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js';
+      s.onload = res; s.onerror = rej; document.head.appendChild(s);
+    });
+  }
+  const qr = window.qrcode(0, 'M');
+  qr.addData(url); qr.make();
+  const mods = qr.getModuleCount();
+  const cell = 5;
+  const cv = document.createElement('canvas');
+  cv.width = mods*cell; cv.height = mods*cell;
+  const ctx = cv.getContext('2d');
+  for (let r=0;r<mods;r++)
+    for (let c=0;c<mods;c++)
+      if (qr.isDark(r,c)) {
+        ctx.fillStyle='rgb(231,38,38)';
+        ctx.fillRect(c*cell,r*cell,cell,cell);
+      }
+  return cv;
+}
+
+function _colorizeQr(src, color) {
+  const cv = document.createElement('canvas');
+  cv.width=src.width; cv.height=src.height;
+  const ctx=cv.getContext('2d'); ctx.drawImage(src,0,0);
+  const id=ctx.getImageData(0,0,cv.width,cv.height); const d=id.data;
+  const [lr,lg,lb]=color==='white'?[255,255,255]:[231,38,38];
+  for(let i=0;i<d.length;i+=4){
+    if(d[i]>180&&d[i+1]>180&&d[i+2]>180){d[i+3]=0;}
+    else{d[i]=lr;d[i+1]=lg;d[i+2]=lb;}
+  }
+  ctx.putImageData(id,0,0); return cv;
+}
+
+async function _compositeQr(qrColored, tpl, color, scale=1) {
+  // ── Bước A: Tạo thiệp tim (imageheart + QR xoay 45°) ──
+  const heartSrc = color==='white' ? QR_FRAMES.heartW : QR_FRAMES.heart;
+  const heartFi  = await _loadImg(heartSrc);
+
+  const heartCard = document.createElement('canvas');
+  heartCard.width=500; heartCard.height=580;
+  const hCtx=heartCard.getContext('2d');
+  hCtx.drawImage(heartFi,0,0,heartFi.naturalWidth,heartFi.naturalHeight,0,0,500,500);
+  hCtx.save();
+  hCtx.translate(250,266.5);
+  hCtx.rotate(Math.PI/4);
+  hCtx.drawImage(qrColored,-100,-100,200,200);
+  hCtx.restore();
+
+  if(tpl==='heart'){
+    // Chỉ cần thiệp tim
+    const cv=document.createElement('canvas');
+    cv.width=500*scale; cv.height=580*scale;
+    const ctx=cv.getContext('2d'); ctx.scale(scale,scale);
+    ctx.drawImage(heartCard,0,0);
+    return cv;
+  }
+
+  // ── Bước B: Overlay thiệp tim lên template phụ nữ ──
+  const tplFi=await _loadImg(QR_FRAMES[tpl]);
+  const TW=tplFi.naturalWidth, TH=tplFi.naturalHeight;
+  const cv=document.createElement('canvas');
+  cv.width=TW*scale; cv.height=TH*scale;
+  const ctx=cv.getContext('2d'); ctx.scale(scale,scale);
+  ctx.drawImage(tplFi,0,0);  // nền template
+  // Đặt thiệp tim khớp vào vùng tim/bó hoa
+  const sc=Math.min(TW/heartCard.width,TH/heartCard.height)*(QR_SCALE[tpl]||0.65);
+  const ox=(TW-heartCard.width*sc)/2;
+  const oy=(TH-heartCard.height*sc)/2+TH*(QR_OFFSET[tpl]||0);
+  ctx.save(); ctx.translate(ox,oy); ctx.scale(sc,sc);
+  ctx.drawImage(heartCard,0,0); ctx.restore();
+  return cv;
+}
+
+
+async function _renderQrCard() {
+  if(!_qrRawCV||_qrBusy) return;
+  _qrBusy=true;
+  document.getElementById('qrLoading').style.display='flex';
+  try{
+    const color = _qrTpl==='women2'?'white':_qrCol;
+    const col   = _colorizeQr(_qrRawCV, color);
+    const card  = await _compositeQr(col, _qrTpl, color, 1);
+    const box   = document.getElementById('qrPreviewBox');
+    box.style.backgroundImage=`url(${card.toDataURL()})`;
+    box.style.display='block';
+    // Caption
+    const cap   = document.getElementById('qrCaption').value.trim();
+    const capEl = document.getElementById('qrCaptionDisplay');
+    if(_qrTpl==='heart'&&cap){ capEl.textContent=cap; capEl.style.display='block'; }
+    else capEl.style.display='none';
+    document.getElementById('qrPlaceholder').style.display='none';
+    document.getElementById('qrActions').style.display='flex';
+  } catch(e){ console.error(e); }
+  document.getElementById('qrLoading').style.display='none';
+  _qrBusy=false;
+}
+
+async function triggerQr() {
+  const url=document.getElementById('qrUrl').value.trim();
+  if(!url){alert('Vui lòng nhập URL!');return;}
+  const btn=document.getElementById('qrGenBtn');
+  btn.disabled=true; btn.textContent='⏳ Đang tạo...';
+  try{
+    _qrRawCV=await _makeQrRaw(url);
+    await _renderQrCard();
+  } catch(e){ console.error(e); alert('Lỗi: '+e.message); }
+  btn.disabled=false; btn.textContent='✨ Tạo QR';
+}
+
+async function dlQrNew() {
+  if(!_qrRawCV) return;
+  const btn=document.querySelector('#qrActions .btn-dl');
+  btn.disabled=true; btn.textContent='⏳ Xuất...';
+  try{
+    const color=_qrTpl==='women2'?'white':_qrCol;
+    const col=_colorizeQr(_qrRawCV,color);
+    const card=await _compositeQr(col,_qrTpl,color,2);
+    if(_qrTpl==='heart'){
+      const cap=document.getElementById('qrCaption').value.trim();
+      if(cap){
+        const ctx=card.getContext('2d');
+        const fs=Math.round(card.width/12);
+        ctx.save(); ctx.font=`bold ${fs}px 'Dancing Script',cursive`;
+        ctx.textAlign='center'; ctx.fillStyle=color==='white'?'#fff':'rgb(231,38,38)';
+        ctx.textBaseline='middle';
+        ctx.fillText(cap,card.width/2,card.height*(540/580),card.width*0.9);
+        ctx.restore();
+      }
+    }
+    card.toBlob(blob=>{
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob); a.download=`qr-8-3-${Date.now()}.png`;
+      a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+    },'image/png',1);
+  } catch(e){ console.error(e); }
+  btn.disabled=false; btn.textContent='⬇️ Tải PNG';
+}
+
+document.getElementById('qrCaption').addEventListener('input',()=>{ if(_qrRawCV) _renderQrCard(); });
+
+function useLanIp() {
+  const ip = document.getElementById('qrLanIp').textContent;
+  if(ip&&ip!=='đang dò...'&&ip!=='không xác định')
+    document.getElementById('qrUrl').value=`http://${ip}:8181`;
+  triggerQr();
+}
+
+// Detect LAN IP
+(async () => {
+  try {
+    const pc = new RTCPeerConnection({iceServers:[]});
+    pc.createDataChannel('');
+    await pc.setLocalDescription(await pc.createOffer());
+    await new Promise(r => setTimeout(r, 1000));
+    const sdp = pc.localDescription?.sdp || '';
+    const ips = (sdp.match(/(\d+\.\d+\.\d+\.\d+)/g) || []);
+    const ip2 = ips.find(i => i.startsWith('192.') || i.startsWith('10.') || i.startsWith('172.'));
+    pc.close();
+    const ipText = ip2 || 'không xác định';
+    document.getElementById('qrLanIp').textContent = ipText;
+    // Cập nhật ô share link
+    if (ip2) document.getElementById('shareLinkDisplay').value = `http://${ip2}:8181`;
+  } catch { document.getElementById('qrLanIp').textContent = 'không xác định'; }
+})();
+</script>
+</body>
+</html>

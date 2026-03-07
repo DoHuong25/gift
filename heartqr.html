@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💐 Tạo QR Thiệp 8/3</title>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:#050505;font-family:'Inter',sans-serif;min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;
+  padding:28px 16px 48px;gap:24px;
+  background-image:radial-gradient(ellipse at top,rgba(236,72,153,0.15) 0%,transparent 60%);
+}
+
+h1{color:#fff;font-size:1.6rem;font-weight:700;text-align:center}
+h1 span{background:linear-gradient(135deg,#ff69b4,#e2185a);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sub{color:rgba(255,255,255,0.45);font-size:13px;text-align:center}
+
+/* Card */
+.card{
+  width:100%;max-width:480px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:18px;padding:22px;
+  display:flex;flex-direction:column;gap:16px;
+  backdrop-filter:blur(12px);
+}
+
+label{font-size:12px;font-weight:600;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px}
+input[type=url],input[type=text]{
+  width:100%;
+  background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15);
+  border-radius:10px;color:#fff;font-size:14px;padding:11px 14px;outline:none;
+  transition:.2s;font-family:'Inter',sans-serif;
+}
+input:focus{border-color:rgba(255,105,180,0.6);box-shadow:0 0 0 3px rgba(255,105,180,0.12)}
+input::placeholder{color:rgba(255,255,255,0.3)}
+
+/* Templates */
+.templates{display:flex;flex-wrap:wrap;gap:8px}
+.tpl-btn{
+  padding:7px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);
+  background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.65);
+  font-size:12px;font-weight:600;cursor:pointer;transition:.2s;
+}
+.tpl-btn.active{background:linear-gradient(135deg,#ff69b4,#d44f8a);color:#fff;border-color:transparent;box-shadow:0 3px 14px rgba(255,105,180,0.35)}
+.tpl-btn:hover:not(.active){background:rgba(255,255,255,0.1);color:#fff}
+
+/* Color pick */
+.color-row{display:flex;gap:10px}
+.col-btn{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:9px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);
+  background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);
+  font-size:13px;font-weight:600;cursor:pointer;transition:.2s;
+}
+.col-btn.active{background:linear-gradient(135deg,#ff4d6d,#c9184a);color:#fff;border-color:transparent}
+.col-btn.white-active{background:linear-gradient(135deg,#aaa,#fff);color:#222;border-color:transparent}
+.dot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
+
+/* Preview */
+.preview-area{display:flex;flex-direction:column;align-items:center;gap:14px}
+.preview-box{
+  width:100%;max-width:320px;aspect-ratio:500/580;
+  background-size:contain;background-position:center;background-repeat:no-repeat;
+  position:relative;border-radius:12px;
+  display:none;
+}
+.caption-text{
+  position:absolute;bottom:0;left:0;right:0;text-align:center;
+  padding:0 16px 10px;
+  font-family:'Dancing Script',cursive;font-size:clamp(1.2em,3.5vw,1.8em);
+  color:#d90429;font-weight:700;word-break:break-word;
+  display:none;
+}
+
+/* Loading */
+.loading{color:rgba(255,105,180,0.8);font-size:13px;display:none;align-items:center;gap:10px;padding:20px 0}
+.spinner{width:20px;height:20px;border:2.5px solid rgba(255,105,180,0.2);border-top-color:#ff69b4;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Actions */
+.actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.btn{
+  padding:11px 24px;border:none;border-radius:50px;font-size:14px;font-weight:700;
+  cursor:pointer;transition:.2s;display:flex;align-items:center;gap:7px;
+}
+.btn-dl{background:linear-gradient(135deg,#ff69b4,#d44f8a);color:#fff;box-shadow:0 4px 18px rgba(255,105,180,0.35)}
+.btn-dl:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(255,105,180,0.5)}
+.btn-back{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.12)}
+.btn-back:hover{background:rgba(255,255,255,0.12);color:#fff}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+
+/* URL badge */
+.url-badge{
+  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);
+  border-radius:8px;padding:8px 12px;font-size:11px;color:rgba(255,200,200,0.7);
+  word-break:break-all;text-align:center;max-width:360px;
+}
+</style>
+</head>
+<body>
+
+<h1>❤️ <span>Tạo QR Thiệp 8/3</span> ❤️</h1>
+<p class="sub">Mã QR chính xác như deargift.online — xoay 45° đặt vào khung trái tim</p>
+
+<!-- Bước 1: URL -->
+<div class="card">
+  <div>
+    <label>Link món quà</label>
+    <input type="url" id="giftUrl" placeholder="https://... hoặc http://localhost:8181">
+    <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:6px">Nhập URL xong → tự động tạo QR</div>
+  </div>
+
+  <!-- Templates -->
+  <div>
+    <label>Khung thiệp</label>
+    <div class="templates" id="tplBtns">
+      <button class="tpl-btn active" data-tpl="heart" onclick="pickTpl(this)">❤️ Trái Tim</button>
+      <button class="tpl-btn" data-tpl="women1" onclick="pickTpl(this)">🌸 Phụ Nữ 1</button>
+      <button class="tpl-btn" data-tpl="women2" onclick="pickTpl(this)">🌹 Phụ Nữ 2</button>
+    </div>
+  </div>
+
+  <!-- Màu QR (chỉ hiện với khung heart) -->
+  <div id="colorSection">
+    <label>Màu QR</label>
+    <div class="color-row">
+      <button class="col-btn active" id="colRed" onclick="pickColor('red')">
+        <span class="dot" style="background:#e72626"></span> Đỏ
+      </button>
+      <button class="col-btn" id="colWhite" onclick="pickColor('white')">
+        <span class="dot" style="background:#fff;border:1px solid #555"></span> Trắng
+      </button>
+    </div>
+  </div>
+
+  <!-- Caption (heart only) -->
+  <div id="captionSection">
+    <label>Chữ dưới QR <span style="font-weight:400;text-transform:none">(tuỳ chọn)</span></label>
+    <input type="text" id="captionInput" placeholder="Nhập lời chúc...">
+  </div>
+</div>
+
+<!-- Preview -->
+<div class="preview-area">
+  <div class="loading" id="loading"><div class="spinner"></div> Đang tạo QR...</div>
+  <div class="preview-box" id="previewBox">
+    <div class="caption-text" id="captionDisplay"></div>
+  </div>
+  <div class="url-badge" id="urlBadge" style="display:none"></div>
+  <div class="actions" id="actions" style="display:none">
+    <button class="btn btn-dl" id="dlBtn" onclick="downloadQR()">⬇️ Tải PNG</button>
+    <button class="btn btn-back" onclick="history.back()">← Quay lại</button>
+  </div>
+</div>
+
+<!-- Hidden canvas for QR raw -->
+<canvas id="qrRaw" style="display:none"></canvas>
+
+<script>
+// ── Config ──
+const FRAMES = {
+  heart:  'assets/frames/imageheart.png',
+  heartW: 'assets/frames/baseQRa.png',
+  women1: 'assets/frames/teamplatewomen1.png',
+  women2: 'assets/frames/templatewomen2.png',
+};
+
+// Scale params (từ source deargift)
+const SCALE_MAP = { women1: 0.48, women2: 0.80, heart: 0.65 };
+const OFFSET_MAP = { women1: 0, women2: 0.13, heart: 0 };
+
+let currentTpl   = 'heart';
+let currentColor = 'red';
+let qrCanvas     = null; // canvas with raw QR modules
+let generating   = false;
+let debounceTimer;
+
+// ── Template picker ──
+function pickTpl(btn) {
+  document.querySelectorAll('.tpl-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentTpl = btn.dataset.tpl;
+  document.getElementById('colorSection').style.display = currentTpl === 'heart' ? '' : 'none';
+  document.getElementById('captionSection').style.display = currentTpl === 'heart' ? '' : 'none';
+  if (qrCanvas) scheduleRender();
+}
+
+// ── Color picker ──
+function pickColor(c) {
+  currentColor = c;
+  document.getElementById('colRed').classList.toggle('active', c === 'red');
+  document.getElementById('colWhite').classList.toggle('active', c === 'white');
+  document.getElementById('colWhite').classList.toggle('white-active', c === 'white');
+  if (qrCanvas) scheduleRender();
+}
+
+// ── Debounce re-render ──
+function scheduleRender() {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(renderCard, 200);
+}
+
+// ── Bước 1: Tạo QR raw matrix → canvas ──
+async function makeQRCanvas(url) {
+  // Load qrcode-generator nếu chưa có
+  if (!window.qrcode) {
+    await new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js';
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+  const qr = window.qrcode(0, 'M');
+  qr.addData(url);
+  qr.make();
+  const modules = qr.getModuleCount();
+  const cellPx  = 4; // px mỗi module
+  const size    = modules * cellPx;
+  const cv = document.getElementById('qrRaw');
+  cv.width = size; cv.height = size;
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0, 0, size, size);
+  for (let r = 0; r < modules; r++)
+    for (let c = 0; c < modules; c++)
+      if (qr.isDark(r, c)) {
+        ctx.fillStyle = 'rgb(231,38,38)';
+        ctx.fillRect(c * cellPx, r * cellPx, cellPx, cellPx);
+      }
+  return cv;
+}
+
+// ── Bước 2: Đổi màu QR (xóa trắng → transparent, đổi đỏ → màu mới) ──
+function colorizeQR(srcCanvas, color) {
+  const cv  = document.createElement('canvas');
+  cv.width  = srcCanvas.width;
+  cv.height = srcCanvas.height;
+  const ctx = cv.getContext('2d');
+  ctx.drawImage(srcCanvas, 0, 0);
+  const img = ctx.getImageData(0, 0, cv.width, cv.height);
+  const d   = img.data;
+  const [lr, lg, lb] = color === 'white' ? [255,255,255] : [231,38,38];
+  for (let i = 0; i < d.length; i += 4) {
+    if (d[i] > 180 && d[i+1] > 180 && d[i+2] > 180) {
+      d[i+3] = 0; // white → transparent
+    } else {
+      d[i] = lr; d[i+1] = lg; d[i+2] = lb;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  return cv;
+}
+
+// ── Bước 3: Composite tất cả ──
+async function compositeCard(qrColored, tpl, color, scale = 1) {
+  // ── BƯỚC A: Tạo thiệp tim (imageheart.png + QR xoay 45°) ──
+  const heartFrameSrc = color === 'white' ? FRAMES.heartW : FRAMES.heart;
+  const heartFi = await loadImg(heartFrameSrc);
+
+  const heartCard = document.createElement('canvas');
+  heartCard.width = 500; heartCard.height = 580;
+  const hCtx = heartCard.getContext('2d');
+  hCtx.drawImage(heartFi, 0, 0, heartFi.naturalWidth, heartFi.naturalHeight, 0, 0, 500, 500);
+  hCtx.save();
+  hCtx.translate(250, 266.5);
+  hCtx.rotate(Math.PI / 4);
+  hCtx.drawImage(qrColored, -100, -100, 200, 200);
+  hCtx.restore();
+
+  if (tpl === 'heart') {
+    // ── Chỉ cần thiệp tim, scale×N để xuất ──
+    const cv = document.createElement('canvas');
+    cv.width = 500 * scale; cv.height = 580 * scale;
+    const ctx = cv.getContext('2d');
+    ctx.scale(scale, scale);
+    ctx.drawImage(heartCard, 0, 0);
+    return cv;
+  }
+
+  // ── BƯỚC B: Load template phụ nữ, đặt thiệp tim lên đúng vị trí ──
+  const tplFi = await loadImg(FRAMES[tpl]);
+  const TW = tplFi.naturalWidth, TH = tplFi.naturalHeight;
+
+  const cv = document.createElement('canvas');
+  cv.width = TW * scale; cv.height = TH * scale;
+  const ctx = cv.getContext('2d');
+  ctx.scale(scale, scale);
+  ctx.drawImage(tplFi, 0, 0);  // nền template
+
+  // Scale thiệp tim để khớp vào vùng tim/bó hoa trong template
+  const sc = Math.min(TW / heartCard.width, TH / heartCard.height) * (SCALE_MAP[tpl] || 0.65);
+  const ox = (TW - heartCard.width  * sc) / 2;
+  const oy = (TH - heartCard.height * sc) / 2 + TH * (OFFSET_MAP[tpl] || 0);
+  ctx.save();
+  ctx.translate(ox, oy);
+  ctx.scale(sc, sc);
+  ctx.drawImage(heartCard, 0, 0);
+  ctx.restore();
+
+  return cv;
+}
+
+
+// ── Load ảnh (cache) ──
+const imgCache = {};
+function loadImg(src) {
+  if (imgCache[src]) return Promise.resolve(imgCache[src]);
+  return new Promise((res, rej) => {
+    const img = new Image(); img.crossOrigin = 'anonymous';
+    img.onload = () => { imgCache[src] = img; res(img); };
+    img.onerror = rej; img.src = src;
+  });
+}
+
+// ── MAIN RENDER ──
+async function renderCard() {
+  if (!qrCanvas || generating) return;
+  generating = true;
+  document.getElementById('loading').style.display = 'flex';
+
+  try {
+    const color   = currentTpl === 'women2' ? 'white' : currentColor;
+    const colored  = colorizeQR(qrCanvas, color);
+    const card     = await compositeCard(colored, currentTpl, color, 1);
+
+    // Hiển thị vào preview-box bằng background-image
+    const box = document.getElementById('previewBox');
+    box.style.backgroundImage = `url(${card.toDataURL()})`;
+    box.style.display = 'block';
+
+    // Caption (heart only)
+    const caption = document.getElementById('captionInput').value.trim();
+    const capEl   = document.getElementById('captionDisplay');
+    if (currentTpl === 'heart' && caption) {
+      capEl.textContent = caption;
+      capEl.style.display = 'block';
+    } else {
+      capEl.style.display = 'none';
+    }
+
+    document.getElementById('urlBadge').style.display = 'block';
+    document.getElementById('actions').style.display = 'flex';
+  } catch(e) {
+    console.error(e);
+    alert('Lỗi tạo QR: ' + e.message);
+  }
+
+  document.getElementById('loading').style.display = 'none';
+  generating = false;
+}
+
+// ── Download (scale×2, ca caption) ──
+async function downloadQR() {
+  if (!qrCanvas) return;
+  const btn = document.getElementById('dlBtn');
+  btn.disabled = true; btn.textContent = '⏳ Đang xuất...';
+
+  try {
+    const color    = currentTpl === 'women2' ? 'white' : currentColor;
+    const colored  = colorizeQR(qrCanvas, color);
+    const card     = await compositeCard(colored, currentTpl, color, 2);
+
+    // Thêm caption vào bản xuất
+    if (currentTpl === 'heart') {
+      const caption = document.getElementById('captionInput').value.trim();
+      if (caption) {
+        const ctx = card.getContext('2d');
+        const fs  = Math.round(card.width / 12);
+        ctx.save();
+        ctx.font = `bold ${fs}px 'Dancing Script', cursive`;
+        ctx.textAlign = 'center';
+        ctx.fillStyle = color === 'white' ? '#fff' : 'rgb(231,38,38)';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(caption, card.width / 2, card.height * (540/580), card.width * 0.9);
+        ctx.restore();
+      }
+    }
+
+    card.toBlob(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `qr-thiet-8-3-${Date.now()}.png`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    }, 'image/png', 1);
+  } catch(e) { console.error(e); alert('Lỗi xuất: ' + e.message); }
+
+  btn.disabled = false; btn.textContent = '⬇️ Tải PNG';
+}
+
+// ── Lắng nghe input URL ──
+document.getElementById('giftUrl').addEventListener('input', async (e) => {
+  const url = e.target.value.trim();
+  if (!url) {
+    qrCanvas = null;
+    document.getElementById('previewBox').style.display = 'none';
+    document.getElementById('actions').style.display = 'none';
+    document.getElementById('urlBadge').style.display = 'none';
+    return;
+  }
+  document.getElementById('loading').style.display = 'flex';
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(async () => {
+    try {
+      qrCanvas = await makeQRCanvas(url);
+      document.getElementById('urlBadge').textContent = '🔗 ' + url;
+      await renderCard();
+    } catch(e) {
+      console.error(e);
+      document.getElementById('loading').style.display = 'none';
+    }
+  }, 600);
+});
+
+// Caption lắng nghe
+document.getElementById('captionInput').addEventListener('input', () => {
+  if (qrCanvas) scheduleRender();
+});
+
+// ── Tự điền URL từ query string ──
+(function() {
+  const p   = new URLSearchParams(location.search);
+  const url = p.get('link') || p.get('qr') || '';
+  if (url) {
+    const inp = document.getElementById('giftUrl');
+    inp.value = url;
+    inp.dispatchEvent(new Event('input'));
+  }
+})();
+</script>
+</body>
+</html>
