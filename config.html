@@ -1024,30 +1024,62 @@ function removeMorphTag(i) {
   markDirty();
 }
 
-// ════════════════════════════════════════════════════════════
-// MUSIC
-// ════════════════════════════════════════════════════════════
 async function handleMusicFile(input) {
   if (!input.files[0]) return;
   const f = input.files[0];
   const statusEl = document.getElementById('musicStatus');
   
-  if (f.size > 720 * 1024) {
-    alert('⚠️ File nhạc quá lớn! Phiên bản miễn phí (chỉ dùng Database) hỗ trợ file nhạc tối đa ~700KB. Nhạc của bạn rât lớn sẽ không lưu được. Hãy nén nhạc lại nhé!');
+  if (f.size > 200 * 1024 * 1024) {
+    alert('⚠️ File nhạc quá lớn! Vui lòng chọn file dưới 200MB.');
     input.value = '';
     statusEl.textContent = 'Trống';
     return;
   }
   
-  statusEl.textContent = `⏳ Đang đọc file ${f.name}...`;
-  const b64 = await fileToBase64(f);
-  state.bgMusicBase64 = b64;
-  state.bgMusicPath = f.name;
-  document.getElementById('bgMusicPath').value = f.name;
-  const sizeKB = Math.round(f.size / 1024);
-  statusEl.textContent = `✅ Đã chọn: ${f.name} (${sizeKB < 1024 ? sizeKB + ' KB' : (sizeKB/1024).toFixed(1) + ' MB'})`;
-  statusEl.style.color = '#6ddd8a';
-  markDirty();
+  statusEl.textContent = `⏳ Đang tải bài "${f.name}" lên máy chủ trọn đời... Vui lòng chờ vài giây...`;
+  statusEl.style.color = '#ff9800';
+  
+  try {
+    const formData = new FormData();
+    formData.append('reqtype', 'fileupload');
+    formData.append('fileToUpload', f);
+    
+    const res = await fetch('https://catbox.moe/user/api.php', {
+      method: 'POST',
+      body: formData,
+      // Catbox hỗ trợ CORS cho upload file tĩnh
+    });
+    
+    if (!res.ok) throw new Error('Máy chủ lưu trữ từ chối kết nối');
+    const url = await res.text();
+    
+    state.bgMusicBase64 = null; // Trống trơn để Firebase không bị quá nặng
+    state.bgMusicPath = url;    // Dùng URL trực tiếp
+    document.getElementById('bgMusicPath').value = url;
+    
+    const sizeMB = (f.size / (1024 * 1024)).toFixed(2);
+    statusEl.innerHTML = `✅ Đã tải thành công <b>${f.name}</b> (${sizeMB} MB) lên Đám mây!`;
+    statusEl.style.color = '#6ddd8a';
+    markDirty();
+  } catch (err) {
+    console.error(err);
+    
+    // Gặp lỗi CORS (chặn web ẩn danh) thì chuyển hướng lưu Text tĩnh (Base64) cổ điển cho file nhỏ
+    if (f.size <= 720 * 1024) {
+      statusEl.textContent = `⚠️ Đám mây từ chối! Đang dùng bộ nhớ cục bộ (do file < 700KB)...`;
+      const b64 = await fileToBase64(f);
+      state.bgMusicBase64 = b64;
+      state.bgMusicPath = f.name;
+      document.getElementById('bgMusicPath').value = f.name;
+      statusEl.textContent = `✅ Đã lưu bằng Base64 (Cục bộ): ${f.name}`;
+      statusEl.style.color = '#6ddd8a';
+      markDirty();
+    } else {
+      statusEl.textContent = `❌ Thất bại: Đám mây chặn do lỗi CORS. File lại > 700KB nên không lưu offline được. Hãy dùng điện thoại / nén nhỏ nhạc lại!`;
+      statusEl.style.color = '#f44336';
+      input.value = '';
+    }
+  }
 }
 
 // ════════════════════════════════════════════════════════════
