@@ -504,7 +504,12 @@ function initializeContent() {
         if (popupImage) popupImage.src = modalImageParam;
         if (popupImageContainer) popupImageContainer.style.display = 'block';
     } else {
-        if (popupImageContainer) popupImageContainer.style.display = 'none';
+        // Giữ lại ảnh mặc định trong HTML nếu không có tham số
+        if (popupImage && popupImage.getAttribute('src') && popupImage.getAttribute('src') !== '') {
+            if (popupImageContainer) popupImageContainer.style.display = 'block';
+        } else {
+            if (popupImageContainer) popupImageContainer.style.display = 'none';
+        }
     }
 
     // Set flying images
@@ -987,18 +992,11 @@ function hideFlowersAndShowImages() {
     const instruction = document.querySelector('.instruction');
     if (instruction) instruction.style.display = 'none';
 
-    // Danh sách ảnh gốc (thêm/bớt tùy ý)
-    const baseImages = [
+    const baseImages = flyingImageUrls.length > 0 ? flyingImageUrls : [
         'images/p1.jpg',
         'images/p2.jpg',
         'images/p3.jpg',
         'images/p4.jpg'
-        // 'images/p5.jpg',
-        // 'images/p6.jpg',
-        // 'images/p7.jpg',
-        // 'images/p8.jpg',
-        // 'images/p9.jpg',
-        // 'images/p10.jpg'
     ];
 
     // Tối thiểu 10 ảnh: lặp lại danh sách nếu ít hơn 10
