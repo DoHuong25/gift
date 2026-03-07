@@ -99,11 +99,13 @@ async function fetchSettings(configId) {
     return {
       title: data.letterCaption || 'Chúc mừng Ngày Quốc tế Phụ nữ 🌷',
       messages: data.morphTexts || ['happy', "women's day", 'em iu'],
-      instructionText: 'Chạm vào hoa để xem lời nhắn',
+      instructionText: data.tpl2Instruction || 'Chạm vào hoa để xem lời nhắn',
       modalTitle: data.passcodeTitle || 'Chúc Mừng Ngày 8/3 ❤️',
       modalContent: data.letterText || 'Gửi đến em những lời chúc tốt đẹp nhất!',
       image: images.length > 0 ? images : null,
-      music: data.bgMusic || null
+      music: data.bgMusic || null,
+      introTitle: data.tpl2IntroTitle || 'Cốc cốc, bó hoa đến rồi',
+      introHint: data.tpl2IntroHint || 'Chạm vào ảnh, có điều bất ngờ'
     };
   } catch (e) {
     console.error('Failed to fetch settings from Firebase:', e);
@@ -292,11 +294,13 @@ onload = async () => {
             apiSettings = {
                 title: previewData.letterCaption || 'Chúc mừng Ngày Quốc tế Phụ nữ 🌷',
                 messages: previewData.morphTexts || ['happy', "women's day", 'em iu'],
-                instructionText: 'Chạm vào hoa để xem lời nhắn',
+                instructionText: previewData.tpl2Instruction || 'Chạm vào hoa để xem lời nhắn',
                 modalTitle: previewData.passcodeTitle || 'Chúc Mừng Ngày 8/3 ❤️',
                 modalContent: previewData.letterText || 'Gửi đến em những lời chúc tốt đẹp nhất!',
                 image: previewData.tpl2Images && previewData.tpl2Images.length > 0 ? previewData.tpl2Images : null,
-                music: previewData.bgMusic || null
+                music: previewData.bgMusic || null,
+                introTitle: previewData.tpl2IntroTitle || 'Cốc cốc, bó hoa đến rồi',
+                introHint: previewData.tpl2IntroHint || 'Chạm vào ảnh, có điều bất ngờ'
             };
         }
     } else if (configId) {
@@ -462,6 +466,15 @@ function initializeContent() {
     if (instructionTextElement) {
         instructionTextElement.innerHTML = instructionText + ' <span class="instruction-icon">👆</span>';
     }
+
+    // Update intro texts
+    const introTitleElem = document.querySelector('.intro-title');
+    const introHintElem = document.querySelector('.intro-hint');
+    const introTitle = (apiSettings && apiSettings.introTitle) ? apiSettings.introTitle : 'Cốc cốc, bó hoa đến rồi';
+    const introHint = (apiSettings && apiSettings.introHint) ? apiSettings.introHint : 'Chạm vào ảnh, có điều bất ngờ';
+    
+    if (introTitleElem) introTitleElem.textContent = introTitle;
+    if (introHintElem) introHintElem.textContent = introHint;
 
     // Update modal content
     const modalTitleElement = document.querySelector('.popup-title');

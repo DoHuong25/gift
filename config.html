@@ -595,8 +595,20 @@ function signOut() {
     </div>
     <div class="card-body">
       <div>
-        <label>Tiêu đề chính (ở màn hình chính)</label>
+        <label>Tiêu đề màn hình chờ (Intro)</label>
+        <input type="text" id="tpl2IntroTitle" placeholder="Cốc cốc, bó hoa đến rồi" value="Cốc cốc, bó hoa đến rồi" oninput="markDirty()">
+      </div>
+      <div>
+        <label>Gợi ý màn hình chờ (Intro)</label>
+        <input type="text" id="tpl2IntroHint" placeholder="Chạm vào ảnh, có điều bất ngờ" value="Chạm vào ảnh, có điều bất ngờ" oninput="markDirty()">
+      </div>
+      <div>
+        <label>Tiêu đề chính (ở màn hình bó hoa)</label>
         <input type="text" id="tpl2Title" placeholder="Chúc mừng Ngày Quốc tế Phụ nữ 🌷" value="Chúc mừng Ngày Quốc tế Phụ nữ 🌷" oninput="markDirty()">
+      </div>
+      <div>
+        <label>Chữ hướng dẫn chạm vào hoa</label>
+        <input type="text" id="tpl2Instruction" placeholder="Chạm vào hoa để xem lời nhắn" value="Chạm vào hoa để xem lời nhắn" oninput="markDirty()">
       </div>
       <div>
         <label>Các dòng chữ gõ tự động bên dưới (cách nhau bởi dấu phẩy)</label>
@@ -1113,6 +1125,9 @@ function buildConfig() {
       caption: document.getElementById('letterCaption').value || '♥',
     },
     letterCaption: document.getElementById('tpl2Title').value || 'Chúc mừng Ngày Quốc tế Phụ nữ 🌷',
+    tpl2IntroTitle: document.getElementById('tpl2IntroTitle').value || 'Cốc cốc, bó hoa đến rồi',
+    tpl2IntroHint: document.getElementById('tpl2IntroHint').value || 'Chạm vào ảnh, có điều bất ngờ',
+    tpl2Instruction: document.getElementById('tpl2Instruction').value || 'Chạm vào hoa để xem lời nhắn',
     letterText: document.getElementById('cardTpl2Options').style.display !== 'none' ? document.getElementById('tpl2ModalContent').value : document.getElementById('letterText').value,
     bgMusic:  state.bgMusicBase64 || state.bgMusicPath,
     bgVolume: parseFloat(document.getElementById('bgVolume').value),
@@ -1388,6 +1403,9 @@ async function init() {
 
   // Populate Mẫu 2 UI
   if (cfg.letterCaption) document.getElementById('tpl2Title').value = cfg.letterCaption;
+  if (cfg.tpl2IntroTitle) document.getElementById('tpl2IntroTitle').value = cfg.tpl2IntroTitle;
+  if (cfg.tpl2IntroHint) document.getElementById('tpl2IntroHint').value = cfg.tpl2IntroHint;
+  if (cfg.tpl2Instruction) document.getElementById('tpl2Instruction').value = cfg.tpl2Instruction;
   if (cfg.passcodeTitle) document.getElementById('tpl2ModalTitle').value = cfg.passcodeTitle;
   if (cfg.letterText) document.getElementById('tpl2ModalContent').value = cfg.letterText;
   if (cfg.morphTexts && cfg.morphTexts.length > 0) {
