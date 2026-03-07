@@ -488,7 +488,10 @@ function signOut() {
           // Ẩn ảnh quả cầu (vì mẫu 2 ko dùng tới)
           document.getElementById('cardSphere').style.display = isTpl2 ? 'none' : 'block';
           // Ẩn hiệu ứng hạt
-          document.getElementById('cardParticle').style.display = isTpl2 ? 'none' : 'block';
+          // Ẩn/hiện tùy chỉnh riêng mẫu 2
+          document.getElementById('cardTpl2Options').style.display = isTpl2 ? 'block' : 'none';
+          // Ẩn cấu hình Mẫu 1 (Lá thư tình)
+          document.getElementById('cardLetter').style.display = isTpl2 ? 'none' : 'block';
           markDirty();
         }
       </script>
@@ -497,7 +500,7 @@ function signOut() {
 
 
   <!-- ── Lá thư ── -->
-  <div class="card">
+  <div class="card" id="cardLetter">
     <div class="card-header">
       <span class="card-icon">💌</span>
       <span class="card-title">Lá thư tình</span>
@@ -583,6 +586,33 @@ function signOut() {
     </div>
   </div>
 
+  <!-- ── Tùy chỉnh riêng cho Mẫu 2 (Bó hoa Tulip) ── -->
+  <div class="card" id="cardTpl2Options" style="display:none">
+    <div class="card-header">
+      <span class="card-icon">🌸</span>
+      <span class="card-title">Tùy chỉnh Bó hoa Tulip</span>
+    </div>
+    <div class="card-body">
+      <div>
+        <label>Tiêu đề chính (ở màn hình chính)</label>
+        <input type="text" id="tpl2Title" placeholder="Chúc mừng Ngày Quốc tế Phụ nữ 🌷" value="Chúc mừng Ngày Quốc tế Phụ nữ 🌷" oninput="markDirty()">
+      </div>
+      <div>
+        <label>Tiêu đề Modal (khi mở hoa)</label>
+        <input type="text" id="tpl2ModalTitle" placeholder="Chúc Mừng Ngày 8/3 ❤️" value="Chúc Mừng Ngày 8/3 ❤️" oninput="markDirty()">
+      </div>
+      <div>
+        <label>Ảnh bay lên (chọn nhiều ảnh) — ảnh này sẽ hiện ở popup</label>
+        <div class="sphere-grid" id="tpl2ImagesGrid">
+          <div class="sphere-add" id="tpl2ImgAdd">
+            <input type="file" accept="image/*" multiple onchange="handleTpl2Imgs(this)">
+            <div>+</div>
+            <div class="sphere-count">Thêm ảnh</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
   <!-- ── Nhạc nền ── -->
   <div class="card">
     <div class="card-header">
@@ -906,8 +936,38 @@ function removeParticleImg() {
   const act = document.getElementById('particleImgActions');
   img.src = ''; img.classList.remove('show');
   ph.style.display = ''; act.style.display = 'none';
-  document.getElementById('particleImgInput').value = '';
+  document.getElementById('particleImgInput').value = '';// ════════════════════════════════════════════════════════════
+// TPL2 IMAGES
+// ════════════════════════════════════════════════════════════
+async function handleTpl2Imgs(input) {
+  const files = Array.from(input.files);
+  for (const f of files) {
+    if (state.tpl2Images.length >= 10) break;
+    const b64 = await fileToBase64(f);
+    state.tpl2Images.push(b64);
+  }
+  renderTpl2Grid();
   markDirty();
+  input.value = '';
+}
+function removeTpl2Img(idx) {
+  state.tpl2Images.splice(idx, 1);
+  renderTpl2Grid();
+  markDirty();
+}
+function renderTpl2Grid() {
+  const grid = document.getElementById('tpl2ImagesGrid');
+  grid.querySelectorAll('.sphere-item').forEach(el => el.remove());
+  const addBtn = document.getElementById('tpl2ImgAdd');
+  state.tpl2Images.forEach((src, i) => {
+    const div = document.createElement('div');
+    div.className = 'sphere-item';
+    div.innerHTML = `<img src="${src}" alt="ảnh ${i+1}">
+      <button class="remove-btn" onclick="removeTpl2Img(${i})">✕</button>`;
+    grid.insertBefore(div, addBtn);
+  });
+  addBtn.style.display = state.tpl2Images.length >= 10 ? 'none' : '';
+}  markDirty();
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1194,6 +1254,11 @@ async function generateShareLink() {
       particleImage: particleImg || CONFIG_DEFAULTS.particleImage,
       bgMusic:       state.bgMusicPath || CONFIG_DEFAULTS.bgMusic,
       sphereCount:   sphereCompressed.filter(Boolean).length,
+      
+      // Tpl2 special fields
+      letterCaption: document.getElementById('tpl2Title').value || 'Chúc mừng Ngày Quốc tế Phụ nữ 🌷',
+      passcodeTitle: document.getElementById('tpl2ModalTitle').value || 'Chúc Mừng Ngày 8/3 ❤️',
+      
       createdAt:     new Date().toISOString()
     };
     const docRef = await _fbDb.collection('gifts').add(mainCfg);
@@ -1205,6 +1270,19 @@ async function generateShareLink() {
       btn.textContent = `⬆ Lưu ảnh cầu batch ${b+1}...`;
       await _fbDb.collection('gifts').doc(docRef.id)
         .collection('images').doc(`sphere_${b}`).set({ imgs: validSphere.slice(b*BATCH, (b+1)*BATCH) });
+    }
+
+    // Lưu ảnh Mẫu 2 nếu có
+    const tpl2ImgsCompressed = [];
+    const tpl2Raw = state.tpl2Images || [];
+    for (let i = 0; i < tpl2Raw.length; i++) {
+      btn.textContent = `⏳ Nén ảnh hoa ${i+1}/${tpl2Raw.length}...`;
+      tpl2ImgsCompressed.push(await compressImg(tpl2Raw[i], 300, 300, 0.7));
+    }
+    const validTpl2 = tpl2ImgsCompressed.filter(Boolean);
+    if (validTpl2.length > 0) {
+      await _fbDb.collection('gifts').doc(docRef.id)
+        .collection('images').doc('tpl2').set({ imgs: validTpl2 });
     }
 
     const tplOpt = document.querySelector('input[name="templateOpt"]:checked').value;
@@ -1290,6 +1368,17 @@ async function init() {
 
   const letter = cfg.letter || {};
   state.letterImage   = letter.image || '';
+
+  // Populate Mẫu 2 UI
+  if (cfg.letterCaption) document.getElementById('tpl2Title').value = cfg.letterCaption;
+  if (cfg.passcodeTitle) document.getElementById('tpl2ModalTitle').value = cfg.passcodeTitle;
+  
+  if (saved && saved.tpl2Images) {
+    state.tpl2Images = saved.tpl2Images;
+    renderTpl2Grid();
+  } else {
+    state.tpl2Images = [];
+  }
 
   // Populate UI
   document.getElementById('letterText').value    = letter.text || '';
