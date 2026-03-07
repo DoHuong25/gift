@@ -570,6 +570,22 @@
                     const doc = await window._fbDb.collection('gifts').doc(idParam).get();
                     if (!doc.exists) throw new Error('Gift không tồn tại');
                     const d = doc.data();
+
+                    // Đọc sphere images từ sub-collection
+                    let sphereImages = window.DEFAULT_APP_CONFIG.sphereImages;
+                    if (d.sphereCount > 0) {
+                        const allSphere = [];
+                        const BATCH = 10;
+                        for (let b = 0; b * BATCH < d.sphereCount; b++) {
+                            const imgDoc = await window._fbDb.collection('gifts').doc(idParam)
+                                .collection('images').doc(`sphere_${b}`).get();
+                            if (imgDoc.exists) allSphere.push(...(imgDoc.data().imgs || []));
+                        }
+                        if (allSphere.length) sphereImages = allSphere;
+                    } else if (d.sphereImages?.length) {
+                        sphereImages = d.sphereImages; // backward compat
+                    }
+
                     return Object.assign({}, window.DEFAULT_APP_CONFIG, {
                         letter: {
                             text:    d.letterText    || window.DEFAULT_APP_CONFIG.letter.text,
@@ -580,7 +596,7 @@
                         bgVolume:      d.bgVolume      ?? window.DEFAULT_APP_CONFIG.bgVolume,
                         enablePasscode: d.enablePasscode ?? false,
                         passcode:      d.passcode      || window.DEFAULT_APP_CONFIG.passcode,
-                        sphereImages:  d.sphereImages?.length ? d.sphereImages : window.DEFAULT_APP_CONFIG.sphereImages,
+                        sphereImages,
                         particleImage: d.particleImage || window.DEFAULT_APP_CONFIG.particleImage,
                         bgMusic:       d.bgMusic       || window.DEFAULT_APP_CONFIG.bgMusic
                     });

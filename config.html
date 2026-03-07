@@ -1037,13 +1037,13 @@ async function generateShareLink() {
       });
     }
 
-    // N\u00e9n sphere images: 320x320 q=0.65
-    btn.textContent = '\u23f3 N\u00e9n \u1ea3nh c\u1ea7u (\u0111\u1ee3i ch\u00fat)...';
+    // Nén sphere images: 180×180 q=0.6 (an toàn cho 30 ảnh)
     const imgs = state.sphereImages?.length
       ? state.sphereImages : (window.DEFAULT_APP_CONFIG?.sphereImages || []);
     const sphereCompressed = [];
-    for (const img of imgs) {
-      sphereCompressed.push(await compressImg(img, 320, 320, 0.65));
+    for (let i = 0; i < imgs.length; i++) {
+      btn.textContent = `⏳ Nén ảnh cầu ${i+1}/${imgs.length}...`;
+      sphereCompressed.push(await compressImg(imgs[i], 180, 180, 0.6));
     }
 
     // N\u00e9n letter image: 500x500 q=0.72
@@ -1057,23 +1057,32 @@ async function generateShareLink() {
       state.particleImageBase64 || null, 128, 128, 0.7
     );
 
-    // L\u01b0u v\u00e0o Firestore
-    btn.textContent = '\u23eb \u0110ang l\u01b0u l\u00ean m\u00e2y...';
-    const cfg = {
+    // Tách lưu: doc chính không có sphereImages
+    btn.textContent = '⬆ Đang lưu lên mây...';
+    const mainCfg = {
       letterText:    state.letterText    || '',
-      letterCaption: state.letterCaption || '\u2665',
+      letterCaption: state.letterCaption || '♥',
       morphTexts:    state.morphTexts    || ['happy', "women's day", 'em iu'],
       bgVolume:      state.bgVolume      ?? 0.55,
       enablePasscode: !!state.enablePasscode,
       passcode:      state.passcode      || '0308',
       letterImage:   letterImg  || window.DEFAULT_APP_CONFIG.letter.image,
-      sphereImages:  sphereCompressed.filter(Boolean),
       particleImage: particleImg || window.DEFAULT_APP_CONFIG.particleImage,
       bgMusic:       state.bgMusicPath || window.DEFAULT_APP_CONFIG.bgMusic,
+      sphereCount:   sphereCompressed.filter(Boolean).length,
       createdAt:     new Date().toISOString()
     };
+    const docRef = await _fbDb.collection('gifts').add(mainCfg);
 
-    const docRef = await _fbDb.collection('gifts').add(cfg);
+    // Lưu sphere images vào sub-collection, batch 10 ảnh/doc
+    const validSphere = sphereCompressed.filter(Boolean);
+    const BATCH = 10;
+    for (let b = 0; b * BATCH < validSphere.length; b++) {
+      btn.textContent = `⬆ Lưu ảnh cầu batch ${b+1}...`;
+      await _fbDb.collection('gifts').doc(docRef.id)
+        .collection('images').doc(`sphere_${b}`).set({ imgs: validSphere.slice(b*BATCH, (b+1)*BATCH) });
+    }
+
     const link = `${window.location.origin}/?id=${docRef.id}`;
 
     document.getElementById('genLinkBox').value = link;
