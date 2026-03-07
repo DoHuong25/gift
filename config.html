@@ -1031,6 +1031,14 @@ async function handleMusicFile(input) {
   if (!input.files[0]) return;
   const f = input.files[0];
   const statusEl = document.getElementById('musicStatus');
+  
+  if (f.size > 720 * 1024) {
+    alert('⚠️ File nhạc quá lớn! Phiên bản miễn phí (chỉ dùng Database) hỗ trợ file nhạc tối đa ~700KB. Nhạc của bạn rât lớn sẽ không lưu được. Hãy nén nhạc lại nhé!');
+    input.value = '';
+    statusEl.textContent = 'Trống';
+    return;
+  }
+  
   statusEl.textContent = `⏳ Đang đọc file ${f.name}...`;
   const b64 = await fileToBase64(f);
   state.bgMusicBase64 = b64;
@@ -1672,13 +1680,14 @@ function useLanIp() {
     const ip2 = ips.find(i => i.startsWith('192.') || i.startsWith('10.') || i.startsWith('172.'));
     pc.close();
     const ipText = ip2 || 'không xác định';
-    document.getElementById('qrLanIp').textContent = ipText;
-    // Cập nhật ô share link
-    // Chỉ cập nhật sang LAN IP nếu đang ở localhost
-    if (ip2 && (location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
-      document.getElementById('shareLinkDisplay').value = `http://${ip2}:8181`;
+    if (document.getElementById('qrLanIp')) {
+      document.getElementById('qrLanIp').textContent = ipText;
     }
-  } catch { document.getElementById('qrLanIp').textContent = 'không xác định'; }
+  } catch { 
+    if (document.getElementById('qrLanIp')) {
+      document.getElementById('qrLanIp').textContent = 'không xác định'; 
+    }
+  }
 })();
 </script>
 </body>
