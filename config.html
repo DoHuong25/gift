@@ -532,7 +532,7 @@
       <div>
         <label>Link để gửi cho người nhận</label>
         <div style="display:flex;gap:8px;align-items:stretch">
-          <input type="text" id="shareLinkDisplay" value="http://localhost:8181" readonly
+          <input type="text" id="shareLinkDisplay" readonly
             style="flex:1;cursor:pointer;font-size:13px" onclick="this.select()">
           <button class="btn-qr-gen" style="flex-shrink:0;padding:10px 16px;white-space:nowrap" onclick="copyShareLink()" id="copyShareBtn">📋 Sao chép</button>
         </div>
@@ -923,12 +923,16 @@ async function saveConfig() {
 }
 
 // ─── URL helpers ──────────────────────────────────────────
-let _currentPreviewUrl = 'http://localhost:8181';
+let _currentPreviewUrl = window.location.origin;
 
 function buildPreviewUrl() {
+  // Nếu đang chạy trên Vercel/domain thật → dùng luôn
+  const origin = window.location.origin;
+  if (!origin.includes('localhost') && !origin.includes('127.0.0.1')) return origin;
+  // Local → thử dùng LAN IP
   const lan = document.getElementById('qrLanIp')?.textContent || '';
   const isLan = lan && lan !== 'đang dò...' && lan !== 'không xác định';
-  return isLan ? `http://${lan}:8181` : 'http://localhost:8181';
+  return isLan ? `http://${lan}:8181` : origin;
 }
 
 function showSavedModal() {
@@ -955,7 +959,7 @@ function openHeartQR() {
 
 // ── Share section helpers ──
 function _getShareLink() {
-  return document.getElementById('shareLinkDisplay').value || 'http://localhost:8181';
+  return document.getElementById('shareLinkDisplay').value || window.location.origin;
 }
 
 function copyShareLink() {
@@ -1071,7 +1075,12 @@ document.addEventListener('dragover', e => e.preventDefault());
   zone.addEventListener('drop', e => { zone.classList.remove('drag-over'); });
 });
 
-window.addEventListener('DOMContentLoaded', init);
+window.addEventListener('DOMContentLoaded', () => {
+  // Điền link mặc định = URL trang hiện tại (Vercel hoặc localhost)
+  const el = document.getElementById('shareLinkDisplay');
+  if (el) el.value = window.location.origin;
+  init();
+});
 
 // ════════════════════════════════════════════════════════════
 // QR GENERATOR — kĩ thuật deargift (xoay 45°, frame thật)
@@ -1291,7 +1300,10 @@ function useLanIp() {
     const ipText = ip2 || 'không xác định';
     document.getElementById('qrLanIp').textContent = ipText;
     // Cập nhật ô share link
-    if (ip2) document.getElementById('shareLinkDisplay').value = `http://${ip2}:8181`;
+    // Chỉ cập nhật sang LAN IP nếu đang ở localhost
+    if (ip2 && (location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+      document.getElementById('shareLinkDisplay').value = `http://${ip2}:8181`;
+    }
   } catch { document.getElementById('qrLanIp').textContent = 'không xác định'; }
 })();
 </script>
