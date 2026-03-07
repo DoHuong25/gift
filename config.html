@@ -551,15 +551,28 @@ function signOut() {
     </div>
     <div class="card-body">
       <div>
-        <label>File nhạc (MP3)</label>
-        <div class="music-row">
-          <input type="text" id="bgMusicPath" placeholder="musics/thuongemdengia.mp3" readonly>
-          <div class="btn-music-file">
-            <input type="file" accept="audio/*" onchange="handleMusicFile(this)">
-            <div class="btn-file">📁 Chọn file</div>
-          </div>
+        <label>Chọn bài hát mặc định</label>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
+          <select id="bgMusicSelect" class="input-modern" style="flex:1" onchange="changeMusicSelect()">
+            <option value="musics/thuongemdengia.mp3">Thương em đến già (Mặc định)</option>
+            <option value="assets/music/bgmucsic.mp3">Nhạc nền Không lời</option>
+            <option value="custom">-- Tải file nhạc của bạn lên --</option>
+          </select>
+          <button id="btnPlayDemo" class="btn-qr-gen" style="padding:10px;min-width:100px" onclick="togglePlayMusic()">▶ Nghe thử</button>
         </div>
-        <div id="musicStatus" style="font-size:12px;color:var(--muted);margin-top:6px"></div>
+        
+        <div id="customMusicRow" style="display:none">
+          <label>File nhạc tải lên</label>
+          <div class="music-row">
+            <input type="text" id="bgMusicPath" placeholder="Tên file sẽ hiện ở đây" readonly>
+            <div class="btn-music-file">
+              <input type="file" id="bgMusicInput" accept="audio/*" onchange="handleMusicFile(this)">
+              <div class="btn-file">📁 Chọn file</div>
+            </div>
+          </div>
+          <div id="musicStatus" style="font-size:12px;color:var(--muted);margin-top:6px"></div>
+        </div>
+        <audio id="demoAudio" style="display:none"></audio>
       </div>
       <div>
         <label>Âm lượng</label>
@@ -1482,6 +1495,79 @@ async function dlQrNew() {
 }
 
 document.getElementById('qrCaption').addEventListener('input',()=>{ if(_qrRawCV) _renderQrCard(); });
+
+// ==== Xử lý chọn Nhạc Nền ====
+function changeMusicSelect() {
+  const sel = document.getElementById('bgMusicSelect').value;
+  const customRow = document.getElementById('customMusicRow');
+  const pathInput = document.getElementById('bgMusicPath');
+  const demoAudio = document.getElementById('demoAudio');
+  
+  if (sel === 'custom') {
+    customRow.style.display = 'block';
+    pathInput.value = '';
+    state.bgMusicPath = '';
+    state.bgMusicBase64 = null;
+  } else {
+    customRow.style.display = 'none';
+    pathInput.value = sel;
+    state.bgMusicPath = sel;
+    state.bgMusicBase64 = null; // Huỷ tự tải nếu chọn nhạc server
+    demoAudio.src = sel;        // Cập nhật nhạc thử
+  }
+}
+
+function handleMusicFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  
+  if (file.size > 5 * 1024 * 1024) {
+    alert('Bản update này ưu tiên nén ảnh nên file nhạc tối đa 5MB nhé!');
+    return;
+  }
+
+  const stat = document.getElementById('musicStatus');
+  stat.style.color = 'var(--text)';
+  stat.textContent = 'Đang đọc thẻ nhớ...';
+  
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    state.bgMusicBase64 = e.target.result;
+    state.bgMusicPath = '';
+    
+    document.getElementById('bgMusicPath').value = `Đã tải lên: ${file.name}`;
+    document.getElementById('demoAudio').src = e.target.result;
+    stat.style.color = 'var(--pink)';
+    stat.textContent = `✅ Đã nhận: ${file.name} (${(file.size/1024/1024).toFixed(1)}MB)`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function togglePlayMusic() {
+  const audio = document.getElementById('demoAudio');
+  const btn = document.getElementById('btnPlayDemo');
+  
+  // Lấy URL hiện tại theo state
+  if (!audio.src || audio.src === window.location.href) {
+    audio.src = state.bgMusicBase64 || state.bgMusicPath || 'musics/thuongemdengia.mp3';
+  }
+
+  if (audio.paused) {
+    const vol = parseFloat(document.getElementById('bgVolume').value) || 0.55;
+    audio.volume = vol;
+    audio.play().then(() => {
+      btn.textContent = '⏸ Dừng';
+      btn.style.background = '#333';
+      btn.style.color = '#fff';
+    }).catch(e => alert("Không phát được: " + e.message));
+  } else {
+    audio.pause();
+    btn.textContent = '▶ Nghe thử';
+    btn.style.background = 'var(--bg-card)';
+    btn.style.color = '#ff69b4';
+  }
+}
+
 
 function useLanIp() {
   const ip = document.getElementById('qrLanIp').textContent;
