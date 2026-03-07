@@ -1129,21 +1129,21 @@ function buildConfig() {
                         ? document.getElementById('tpl2Messages').value.split(',').map(s=>s.trim()).filter(Boolean)
                         : [...state.morphTexts],
     particleImage:    state.particleImage || null,
-    sphereImages:     [...state.sphereImages],
+    sphereImages:     state.sphereImages ? [...state.sphereImages] : [],
     tpl2Images:       state.tpl2Images ? [...state.tpl2Images] : [],
     letterImage:      state.letterImage || null,
     letter: {
-      text:    document.getElementById('letterText').value || '',
+      text:    document.getElementById('letterText')?.value || '',
       image:   state.letterImage || null,
-      caption: document.getElementById('letterCaption').value || '♥',
+      caption: document.getElementById('letterCaption')?.value || '♥',
     },
-    letterCaption: document.getElementById('tpl2Title').value || 'Chúc mừng Ngày Quốc tế Phụ nữ 🌷',
-    tpl2IntroTitle: document.getElementById('tpl2IntroTitle').value || 'Cốc cốc, bó hoa đến rồi',
-    tpl2IntroHint: document.getElementById('tpl2IntroHint').value || 'Chạm vào ảnh, có điều bất ngờ',
-    tpl2Instruction: document.getElementById('tpl2Instruction').value || 'Chạm vào hoa để xem lời nhắn',
-    letterText: document.getElementById('cardTpl2Options').style.display !== 'none' ? document.getElementById('tpl2ModalContent').value : document.getElementById('letterText').value,
+    letterCaption: document.getElementById('tpl2Title')?.value || 'Chúc mừng Ngày Quốc tế Phụ nữ 🌷',
+    tpl2IntroTitle: document.getElementById('tpl2IntroTitle')?.value || 'Cốc cốc, bó hoa đến rồi',
+    tpl2IntroHint: document.getElementById('tpl2IntroHint')?.value || 'Chạm vào ảnh, có điều bất ngờ',
+    tpl2Instruction: document.getElementById('tpl2Instruction')?.value || 'Chạm vào hoa để xem lời nhắn',
+    letterText: (document.getElementById('cardTpl2Options')?.style.display !== 'none' ? document.getElementById('tpl2ModalContent')?.value : document.getElementById('letterText')?.value) || '',
     bgMusic:  state.bgMusicBase64 || state.bgMusicPath || null,
-    bgVolume: parseFloat(document.getElementById('bgVolume').value) || 0.5,
+    bgVolume: parseFloat(document.getElementById('bgVolume')?.value || '0.5') || 0.5,
   };
 }
 
