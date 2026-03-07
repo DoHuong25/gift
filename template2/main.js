@@ -102,7 +102,8 @@ async function fetchSettings(configId) {
       instructionText: data.tpl2Instruction || 'Chạm vào hoa để xem lời nhắn',
       modalTitle: data.passcodeTitle || 'Chúc Mừng Ngày 8/3 ❤️',
       modalContent: data.letterText || 'Gửi đến em những lời chúc tốt đẹp nhất!',
-      image: images.length > 0 ? images : null,
+      modalImage: data.letterImage || null,
+      flyingImages: images.length > 0 ? images : null,
       music: data.bgMusic || null,
       introTitle: data.tpl2IntroTitle || 'Cốc cốc, bó hoa đến rồi',
       introHint: data.tpl2IntroHint || 'Chạm vào ảnh, có điều bất ngờ'
@@ -142,7 +143,8 @@ function getUrlParameter(name) {
       instructionText: 'instructionText',
       modalTitle: 'modalTitle',
       modalContent: 'modalContent',
-      image: 'image',
+      modalImage: ['modalImage', 'image'],
+      flyingImages: 'flyingImages',
       music: 'music',
       messages: ['listText', 'arrayText', 'messages']
     };
@@ -297,7 +299,8 @@ onload = async () => {
                 instructionText: previewData.tpl2Instruction || 'Chạm vào hoa để xem lời nhắn',
                 modalTitle: previewData.passcodeTitle || 'Chúc Mừng Ngày 8/3 ❤️',
                 modalContent: previewData.letterText || 'Gửi đến em những lời chúc tốt đẹp nhất!',
-                image: previewData.tpl2Images && previewData.tpl2Images.length > 0 ? previewData.tpl2Images : null,
+                modalImage: previewData.letterImage || null,
+                flyingImages: previewData.tpl2Images && previewData.tpl2Images.length > 0 ? previewData.tpl2Images : null,
                 music: previewData.bgMusic || null,
                 introTitle: previewData.tpl2IntroTitle || 'Cốc cốc, bó hoa đến rồi',
                 introHint: previewData.tpl2IntroHint || 'Chạm vào ảnh, có điều bất ngờ'
@@ -492,29 +495,26 @@ function initializeContent() {
         modalMessageElement.innerHTML = modalContent.replace(/\n/g, '<br>');
     }
 
-    // Update image if provided (API trả về array)
-    let imageParam = getUrlParameter('image');
-    // Lưu tất cả ảnh từ API cho flying images
-    if (Array.isArray(imageParam) && imageParam.length > 0) {
-        flyingImageUrls = imageParam.filter(url => url && url.trim() !== '');
-    } else if (imageParam && typeof imageParam === 'string') {
-        flyingImageUrls = [imageParam];
-    }
-
+    // Update modal image
     const popupImageContainer = document.querySelector('.popup-card-image');
     const popupImage = document.querySelector('.popup-card-image img');
-    const hasApiId = new URLSearchParams(window.location.search).get('id');
-
-    if (flyingImageUrls.length > 0) {
-        // API có ảnh → popup hiện ảnh đầu tiên
-        if (popupImage) popupImage.src = flyingImageUrls[0];
+    let modalImageParam = getUrlParameter('modalImage');
+    
+    if (modalImageParam) {
+        if (popupImage) popupImage.src = modalImageParam;
         if (popupImageContainer) popupImageContainer.style.display = 'block';
-    } else if (hasApiId) {
-        // Có ?id= nhưng API không trả ảnh → ẩn ảnh popup
-        if (popupImageContainer) popupImageContainer.style.display = 'none';
     } else {
-        // Không có ?id= → giữ ảnh mặc định (girl.jpeg từ HTML)
-        if (popupImageContainer) popupImageContainer.style.display = 'block';
+        if (popupImageContainer) popupImageContainer.style.display = 'none';
+    }
+
+    // Set flying images
+    let flyingImagesParam = getUrlParameter('flyingImages');
+    if (Array.isArray(flyingImagesParam) && flyingImagesParam.length > 0) {
+        flyingImageUrls = flyingImagesParam.filter(url => url && url.trim() !== '');
+    } else if (flyingImagesParam && typeof flyingImagesParam === 'string') {
+        flyingImageUrls = [flyingImagesParam];
+    } else {
+        flyingImageUrls = [];
     }
 
     // Update music source

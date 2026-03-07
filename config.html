@@ -623,6 +623,22 @@ function signOut() {
         <textarea id="tpl2ModalContent" placeholder="Viết lời chúc..." oninput="markDirty()"></textarea>
       </div>
       <div>
+        <label>Ảnh hiển thị trong thư (Modal)</label>
+        <div class="letter-img-zone" id="tpl2ModalImgZone" onclick="document.getElementById('tpl2ModalImgInput').click()">
+          <input type="file" id="tpl2ModalImgInput" accept="image/*" style="display:none" onchange="handleTpl2ModalImg(this)">
+          <div class="placeholder" id="tpl2ModalImgPlaceholder">
+            <div style="font-size:24px;margin-bottom:8px">📷</div>
+            <div>Nhấn để tải ảnh lên</div>
+            <div style="font-size:12px;opacity:0.6;margin-top:4px">(Ảnh dọc hoặc vuông)</div>
+          </div>
+          <img id="tpl2ModalImgPreview" src="" alt="Ảnh thư" class="preview">
+          <div class="actions" id="tpl2ModalImgActions" onclick="event.stopPropagation()">
+            <button class="btn" style="background:var(--pink)" onclick="document.getElementById('tpl2ModalImgInput').click()">Đổi ảnh</button>
+            <button class="btn" style="background:rgba(255,255,255,0.2)" onclick="removeTpl2ModalImg()">Xóa</button>
+          </div>
+        </div>
+      </div>
+      <div>
         <label>Ảnh bay lên (chọn nhiều ảnh) — ảnh này sẽ hiện ở popup</label>
         <div class="sphere-grid" id="tpl2ImagesGrid">
           <div class="sphere-add" id="tpl2ImgAdd">
@@ -929,7 +945,38 @@ function removeParticleImg() {
   const act = document.getElementById('particleImgActions');
   img.src = ''; img.classList.remove('show');
   ph.style.display = ''; act.style.display = 'none';
-  document.getElementById('particleImgInput').value = '';// ════════════════════════════════════════════════════════════
+  document.getElementById('particleImgInput').value = '';
+  markDirty();
+}
+
+// ════════════════════════════════════════════════════════════
+// TPL2 MODAL IMAGE (re-uses state.letterImage)
+// ════════════════════════════════════════════════════════════
+async function handleTpl2ModalImg(input) {
+  if (!input.files[0]) return;
+  const b64 = await fileToBase64(input.files[0]);
+  state.letterImageBase64 = b64;
+  state.letterImage = b64;
+  const img = document.getElementById('tpl2ModalImgPreview');
+  const ph  = document.getElementById('tpl2ModalImgPlaceholder');
+  const act = document.getElementById('tpl2ModalImgActions');
+  img.src = b64; img.classList.add('show');
+  ph.style.display = 'none'; act.style.display = 'flex';
+  markDirty();
+}
+function removeTpl2ModalImg() {
+  state.letterImage = '';
+  state.letterImageBase64 = null;
+  const img = document.getElementById('tpl2ModalImgPreview');
+  const ph  = document.getElementById('tpl2ModalImgPlaceholder');
+  const act = document.getElementById('tpl2ModalImgActions');
+  img.src = ''; img.classList.remove('show');
+  ph.style.display = ''; act.style.display = 'none';
+  document.getElementById('tpl2ModalImgInput').value = '';
+  markDirty();
+}
+
+// ════════════════════════════════════════════════════════════
 // TPL2 IMAGES
 // ════════════════════════════════════════════════════════════
 async function handleTpl2Imgs(input) {
@@ -960,7 +1007,6 @@ function renderTpl2Grid() {
     grid.insertBefore(div, addBtn);
   });
   addBtn.style.display = state.tpl2Images.length >= 10 ? 'none' : '';
-}  markDirty();
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1337,8 +1383,20 @@ async function init() {
   updatePasscodeUI();
   updatePcDots();
 
-  // Letter image
-  if (state.letterImage) showLetterImgPreview(state.letterImage);
+  // Letter image / Tpl2 Modal Image
+  if (state.letterImage) {
+    showLetterImgPreview(state.letterImage); // Của riêng Mẫu 1
+    
+    // Của riêng Mẫu 2
+    const limg = document.getElementById('tpl2ModalImgPreview');
+    if (limg) {
+      limg.src = state.letterImage; limg.classList.add('show');
+      const lph = document.getElementById('tpl2ModalImgPlaceholder');
+      if (lph) lph.style.display = 'none';
+      const lact = document.getElementById('tpl2ModalImgActions');
+      if (lact) lact.style.display = 'flex';
+    }
+  }
 
   // Particle image (nếu là base64 thì hiện preview)
   if (state.particleImage && state.particleImage.startsWith('data:')) {
