@@ -7,10 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Pacifico&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<!-- Firebase compat SDKs -->
+<!-- Firebase compat SDKs (chỉ Firestore, không cần Storage) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
 <script>
 const FB_CONFIG = {
   apiKey: "AIzaSyDn7xAmMyp1NAJXB9R9Kmvp59TGKozR07g",
@@ -21,8 +20,7 @@ const FB_CONFIG = {
   appId: "1:945449706355:web:85fd5425f34721d1d39b06"
 };
 if (!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
-const _fbDb      = firebase.firestore();
-const _fbStorage = firebase.storage();
+const _fbDb = firebase.firestore();
 </script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1012,82 +1010,83 @@ function openHeartQRShare() {
   window.open('heartqr.html?link=' + encodeURIComponent(link), '_blank');
 }
 
-// ══ Tạo link riêng có Firebase ══
+// \u2550\u2550 T\u1ea1o link ri\u00eang \u2014 Firestore only (kh\u00f4ng c\u1ea7n Storage) \u2550\u2550
 async function generateShareLink() {
   const btn = document.querySelector('[onclick="generateShareLink()"]');
   const origText = btn.textContent;
-  btn.disabled = true; btn.textContent = '⏳ Đang chuẩn bị...';
+  btn.disabled = true; btn.textContent = '\u23f3 \u0110ang x\u1eed l\u00fd...';
   document.getElementById('genLinkResult').style.display = 'none';
 
   try {
-    const uid = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-
-    // ── Upload 1 ảnh (tra về URL hoặc giữ nguyên path) ──
-    async function uploadOne(dataUrl, name) {
-      if (!dataUrl || !dataUrl.startsWith('data:')) return dataUrl || null;
-      btn.textContent = `⏫ Upload ${name}...`;
-      const r = _fbStorage.ref(`gifts/${uid}/${name}`);
-      await r.putString(dataUrl, 'data_url');
-      return await r.getDownloadURL();
+    // \u2500\u2500 N\u00e9n \u1ea3nh base64 \u2500\u2500
+    function compressImg(dataUrl, maxW, maxH, q) {
+      return new Promise(res => {
+        if (!dataUrl || !dataUrl.startsWith('data:')) { res(dataUrl || null); return; }
+        const img = new Image();
+        img.onload = () => {
+          let w = img.width, h = img.height;
+          const r = Math.min(maxW/w, maxH/h);
+          if (r < 1) { w = Math.round(w*r); h = Math.round(h*r); }
+          const cv = document.createElement('canvas');
+          cv.width = w; cv.height = h;
+          cv.getContext('2d').drawImage(img, 0, 0, w, h);
+          res(cv.toDataURL('image/jpeg', q));
+        };
+        img.onerror = () => res(dataUrl);
+        img.src = dataUrl;
+      });
     }
 
-    // Upload sphere images
-    const sphereUrls = [];
-    const imgs = state.sphereImages?.length ? state.sphereImages
-                   : (window.DEFAULT_APP_CONFIG?.sphereImages || []);
-    for (let i = 0; i < imgs.length; i++) {
-      sphereUrls.push(await uploadOne(imgs[i], `sphere_${i}.jpg`));
+    // N\u00e9n sphere images: 320x320 q=0.65
+    btn.textContent = '\u23f3 N\u00e9n \u1ea3nh c\u1ea7u (\u0111\u1ee3i ch\u00fat)...';
+    const imgs = state.sphereImages?.length
+      ? state.sphereImages : (window.DEFAULT_APP_CONFIG?.sphereImages || []);
+    const sphereCompressed = [];
+    for (const img of imgs) {
+      sphereCompressed.push(await compressImg(img, 320, 320, 0.65));
     }
 
-    // Upload letter image
-    const letterImgUrl = await uploadOne(
-      state.letterImage || state.letterImageBase64 || null,
-      'letter.jpg'
+    // N\u00e9n letter image: 500x500 q=0.72
+    btn.textContent = '\u23f3 N\u00e9n \u1ea3nh th\u01b0...';
+    const letterImg = await compressImg(
+      state.letterImage || state.letterImageBase64 || null, 500, 500, 0.72
     );
 
-    // Upload particle image
-    const particleUrl = await uploadOne(
-      state.particleImageBase64 || null, 'particle.png'
+    // N\u00e9n particle image: 128x128
+    const particleImg = await compressImg(
+      state.particleImageBase64 || null, 128, 128, 0.7
     );
 
-    // Upload nhạc (nếu base64)
-    let musicUrl = state.bgMusicPath || window.DEFAULT_APP_CONFIG.bgMusic;
-    if (state.bgMusicBase64) {
-      btn.textContent = '⏫ Upload nhạc...';
-      const r = _fbStorage.ref(`gifts/${uid}/music.mp3`);
-      await r.putString(state.bgMusicBase64, 'data_url');
-      musicUrl = await r.getDownloadURL();
-    }
-
-    // Lưu config vào Firestore
-    btn.textContent = '⏫ Đang lưu...';
+    // L\u01b0u v\u00e0o Firestore
+    btn.textContent = '\u23eb \u0110ang l\u01b0u l\u00ean m\u00e2y...';
     const cfg = {
       letterText:    state.letterText    || '',
-      letterCaption: state.letterCaption || '♥',
+      letterCaption: state.letterCaption || '\u2665',
       morphTexts:    state.morphTexts    || ['happy', "women's day", 'em iu'],
       bgVolume:      state.bgVolume      ?? 0.55,
       enablePasscode: !!state.enablePasscode,
       passcode:      state.passcode      || '0308',
-      letterImageUrl:  letterImgUrl  || window.DEFAULT_APP_CONFIG.letter.image,
-      sphereImageUrls: sphereUrls.filter(Boolean),
-      particleImageUrl: particleUrl || window.DEFAULT_APP_CONFIG.particleImage,
-      bgMusicUrl:    musicUrl,
+      letterImage:   letterImg  || window.DEFAULT_APP_CONFIG.letter.image,
+      sphereImages:  sphereCompressed.filter(Boolean),
+      particleImage: particleImg || window.DEFAULT_APP_CONFIG.particleImage,
+      bgMusic:       state.bgMusicPath || window.DEFAULT_APP_CONFIG.bgMusic,
       createdAt:     new Date().toISOString()
     };
-    const docRef = await _fbDb.collection('gifts').add(cfg);
 
-    // Tạo link
+    const docRef = await _fbDb.collection('gifts').add(cfg);
     const link = `${window.location.origin}/?id=${docRef.id}`;
+
     document.getElementById('genLinkBox').value = link;
     document.getElementById('genLinkResult').style.display = 'block';
     document.getElementById('genLinkResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
   } catch(e) {
     console.error(e);
-    alert('❌ Lỗi: ' + e.message + '\n\nKiểm tra Firestore & Storage đã bật chưa?');
+    alert('\u274c L\u1ed7i: ' + e.message + '\n\nKi\u1ec3m tra: Firestore \u0111\u00e3 b\u1eadt ch\u01b0a?');
   }
   btn.disabled = false; btn.textContent = origText;
 }
+
 
 function copyGenLink() {
   const v = document.getElementById('genLinkBox').value;

@@ -573,16 +573,16 @@
                     return Object.assign({}, window.DEFAULT_APP_CONFIG, {
                         letter: {
                             text:    d.letterText    || window.DEFAULT_APP_CONFIG.letter.text,
-                            image:   d.letterImageUrl || window.DEFAULT_APP_CONFIG.letter.image,
-                            caption: d.letterCaption  || window.DEFAULT_APP_CONFIG.letter.caption
+                            image:   d.letterImage   || window.DEFAULT_APP_CONFIG.letter.image,
+                            caption: d.letterCaption || window.DEFAULT_APP_CONFIG.letter.caption
                         },
-                        morphTexts:   d.morphTexts    || window.DEFAULT_APP_CONFIG.morphTexts,
-                        bgVolume:     d.bgVolume      ?? window.DEFAULT_APP_CONFIG.bgVolume,
+                        morphTexts:    d.morphTexts    || window.DEFAULT_APP_CONFIG.morphTexts,
+                        bgVolume:      d.bgVolume      ?? window.DEFAULT_APP_CONFIG.bgVolume,
                         enablePasscode: d.enablePasscode ?? false,
-                        passcode:     d.passcode      || window.DEFAULT_APP_CONFIG.passcode,
-                        sphereImages: d.sphereImageUrls?.length ? d.sphereImageUrls : window.DEFAULT_APP_CONFIG.sphereImages,
-                        particleImage: d.particleImageUrl || window.DEFAULT_APP_CONFIG.particleImage,
-                        bgMusic:      d.bgMusicUrl    || window.DEFAULT_APP_CONFIG.bgMusic
+                        passcode:      d.passcode      || window.DEFAULT_APP_CONFIG.passcode,
+                        sphereImages:  d.sphereImages?.length ? d.sphereImages : window.DEFAULT_APP_CONFIG.sphereImages,
+                        particleImage: d.particleImage || window.DEFAULT_APP_CONFIG.particleImage,
+                        bgMusic:       d.bgMusic       || window.DEFAULT_APP_CONFIG.bgMusic
                     });
                 } catch(e) {
                     console.error('Firebase fetch error:', e);
