@@ -7,6 +7,23 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Pacifico&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- Firebase compat SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+<script>
+const FB_CONFIG = {
+  apiKey: "AIzaSyDn7xAmMyp1NAJXB9R9Kmvp59TGKozR07g",
+  authDomain: "gifr-3c302.firebaseapp.com",
+  projectId: "gifr-3c302",
+  storageBucket: "gifr-3c302.firebasestorage.app",
+  messagingSenderId: "945449706355",
+  appId: "1:945449706355:web:85fd5425f34721d1d39b06"
+};
+if (!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
+const _fbDb      = firebase.firestore();
+const _fbStorage = firebase.storage();
+</script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -995,28 +1012,81 @@ function openHeartQRShare() {
   window.open('heartqr.html?link=' + encodeURIComponent(link), '_blank');
 }
 
-// ── Tạo link riêng encode config vào URL ──
-function generateShareLink() {
-  // Lấy state hiện tại từ form
-  const cfg = {
-    morphTexts: state.morphTexts?.length ? state.morphTexts : ['happy', "women's day", 'em iu'],
-    letter: {
-      text:    state.letterText    || window.DEFAULT_APP_CONFIG?.letter?.text || '',
-      caption: state.letterCaption || '♥',
-    }
-  };
-  // Bỏ qua ảnh/nhạc (base64 quá nặng cho URL)
+// ══ Tạo link riêng có Firebase ══
+async function generateShareLink() {
+  const btn = document.querySelector('[onclick="generateShareLink()"]');
+  const origText = btn.textContent;
+  btn.disabled = true; btn.textContent = '⏳ Đang chuẩn bị...';
+  document.getElementById('genLinkResult').style.display = 'none';
+
   try {
-    const encoded = btoa(encodeURIComponent(JSON.stringify(cfg)));
-    const base = window.location.origin; // https://gift-23ge.vercel.app
-    const link = `${base}/?d=${encoded}`;
+    const uid = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+    // ── Upload 1 ảnh (tra về URL hoặc giữ nguyên path) ──
+    async function uploadOne(dataUrl, name) {
+      if (!dataUrl || !dataUrl.startsWith('data:')) return dataUrl || null;
+      btn.textContent = `⏫ Upload ${name}...`;
+      const r = _fbStorage.ref(`gifts/${uid}/${name}`);
+      await r.putString(dataUrl, 'data_url');
+      return await r.getDownloadURL();
+    }
+
+    // Upload sphere images
+    const sphereUrls = [];
+    const imgs = state.sphereImages?.length ? state.sphereImages
+                   : (window.DEFAULT_APP_CONFIG?.sphereImages || []);
+    for (let i = 0; i < imgs.length; i++) {
+      sphereUrls.push(await uploadOne(imgs[i], `sphere_${i}.jpg`));
+    }
+
+    // Upload letter image
+    const letterImgUrl = await uploadOne(
+      state.letterImage || state.letterImageBase64 || null,
+      'letter.jpg'
+    );
+
+    // Upload particle image
+    const particleUrl = await uploadOne(
+      state.particleImageBase64 || null, 'particle.png'
+    );
+
+    // Upload nhạc (nếu base64)
+    let musicUrl = state.bgMusicPath || window.DEFAULT_APP_CONFIG.bgMusic;
+    if (state.bgMusicBase64) {
+      btn.textContent = '⏫ Upload nhạc...';
+      const r = _fbStorage.ref(`gifts/${uid}/music.mp3`);
+      await r.putString(state.bgMusicBase64, 'data_url');
+      musicUrl = await r.getDownloadURL();
+    }
+
+    // Lưu config vào Firestore
+    btn.textContent = '⏫ Đang lưu...';
+    const cfg = {
+      letterText:    state.letterText    || '',
+      letterCaption: state.letterCaption || '♥',
+      morphTexts:    state.morphTexts    || ['happy', "women's day", 'em iu'],
+      bgVolume:      state.bgVolume      ?? 0.55,
+      enablePasscode: !!state.enablePasscode,
+      passcode:      state.passcode      || '0308',
+      letterImageUrl:  letterImgUrl  || window.DEFAULT_APP_CONFIG.letter.image,
+      sphereImageUrls: sphereUrls.filter(Boolean),
+      particleImageUrl: particleUrl || window.DEFAULT_APP_CONFIG.particleImage,
+      bgMusicUrl:    musicUrl,
+      createdAt:     new Date().toISOString()
+    };
+    const docRef = await _fbDb.collection('gifts').add(cfg);
+
+    // Tạo link
+    const link = `${window.location.origin}/?id=${docRef.id}`;
     document.getElementById('genLinkBox').value = link;
     document.getElementById('genLinkResult').style.display = 'block';
-    // Cuộn xuống cho thấy
     document.getElementById('genLinkResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
   } catch(e) {
-    alert('Lỗi tạo link: ' + e.message);
+    console.error(e);
+    alert('❌ Lỗi: ' + e.message + '\n\nKiểm tra Firestore & Storage đã bật chưa?');
   }
+  btn.disabled = false; btn.textContent = origText;
 }
 
 function copyGenLink() {

@@ -8,6 +8,24 @@
     <meta name="apple-mobile-web-app-title" content="Món Quà Nhỏ">
     <link rel="apple-touch-icon" href="assets/images/icons/couple.png">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/images/icons/couple.png">
+    <!-- Firebase compat SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+    <script>
+    (function(){
+      const _FC = {
+        apiKey: "AIzaSyDn7xAmMyp1NAJXB9R9Kmvp59TGKozR07g",
+        authDomain: "gifr-3c302.firebaseapp.com",
+        projectId: "gifr-3c302",
+        storageBucket: "gifr-3c302.firebasestorage.app",
+        messagingSenderId: "945449706355",
+        appId: "1:945449706355:web:85fd5425f34721d1d39b06"
+      };
+      if (!firebase.apps.length) firebase.initializeApp(_FC);
+      window._fbDb = firebase.firestore();
+    })();
+    </script>
     <link rel="apple-touch-icon" sizes="152x152" href="assets/images/icons/couple.png">
     <link rel="apple-touch-icon" sizes="120x120" href="assets/images/icons/couple.png">
     <link rel="icon" type="image/png" href="assets/images/icons/couple.png">
@@ -544,7 +562,37 @@
             return;
         }
 
-        // ── ?d=base64 → config encode trong URL (share không cần server) ──
+        // ── ?id= → lấy config từ Firestore ──
+        var idParam = params.get('id');
+        if (idParam) {
+            window.APP_CONFIG_PROMISE = (async () => {
+                try {
+                    const doc = await window._fbDb.collection('gifts').doc(idParam).get();
+                    if (!doc.exists) throw new Error('Gift không tồn tại');
+                    const d = doc.data();
+                    return Object.assign({}, window.DEFAULT_APP_CONFIG, {
+                        letter: {
+                            text:    d.letterText    || window.DEFAULT_APP_CONFIG.letter.text,
+                            image:   d.letterImageUrl || window.DEFAULT_APP_CONFIG.letter.image,
+                            caption: d.letterCaption  || window.DEFAULT_APP_CONFIG.letter.caption
+                        },
+                        morphTexts:   d.morphTexts    || window.DEFAULT_APP_CONFIG.morphTexts,
+                        bgVolume:     d.bgVolume      ?? window.DEFAULT_APP_CONFIG.bgVolume,
+                        enablePasscode: d.enablePasscode ?? false,
+                        passcode:     d.passcode      || window.DEFAULT_APP_CONFIG.passcode,
+                        sphereImages: d.sphereImageUrls?.length ? d.sphereImageUrls : window.DEFAULT_APP_CONFIG.sphereImages,
+                        particleImage: d.particleImageUrl || window.DEFAULT_APP_CONFIG.particleImage,
+                        bgMusic:      d.bgMusicUrl    || window.DEFAULT_APP_CONFIG.bgMusic
+                    });
+                } catch(e) {
+                    console.error('Firebase fetch error:', e);
+                    return window.DEFAULT_APP_CONFIG;
+                }
+            })();
+            return;
+        }
+
+        // ── ?d=base64 → config encode trong URL ──
         var dParam = params.get('d');
         if (dParam) {
             try {
