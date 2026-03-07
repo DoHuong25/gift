@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -544,11 +544,29 @@
             return;
         }
 
+        // ── ?d=base64 → config encode trong URL (share không cần server) ──
+        var dParam = params.get('d');
+        if (dParam) {
+            try {
+                var decoded = JSON.parse(decodeURIComponent(atob(dParam)));
+                var merged = Object.assign({}, window.DEFAULT_APP_CONFIG, decoded);
+                if (decoded.letter) merged.letter = Object.assign({}, window.DEFAULT_APP_CONFIG.letter, decoded.letter);
+                window.APP_CONFIG = merged;
+                window.APP_CONFIG_PROMISE = Promise.resolve(merged);
+            } catch(e) {
+                window.APP_CONFIG = window.DEFAULT_APP_CONFIG;
+                window.APP_CONFIG_PROMISE = Promise.resolve(window.DEFAULT_APP_CONFIG);
+            }
+            return;
+        }
+
         // Website thật: query dạng ?<websiteId> (chỉ lấy segment đầu, bỏ phần Zalo/UTM phía sau)
         var rawSearch = window.location.search || '';
         var websiteId = '';
         if (rawSearch && rawSearch !== '?preview=1') {
             websiteId = rawSearch.replace(/^\?/, '').trim().split('&')[0].trim();
+            // Bỏ qua nếu là param hệ thống
+            if (['preview', 'd', 'autoplay', 't'].includes(websiteId.split('=')[0])) websiteId = '';
         }
 
         if (websiteId) {
@@ -572,7 +590,6 @@
                     throw new Error(msg);
                 } catch (err) {
                     console.error('Lỗi tải config womenday:', err);
-                    // Trả về reject để module JS có thể dừng lại
                     throw err;
                 }
             })();

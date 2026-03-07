@@ -542,12 +542,24 @@
         </div>
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn-modal-qr" style="flex:1;min-width:150px;padding:13px" onclick="openHeartQRShare()">
-          💞 Tạo thiếp QR đẹp
+        <button class="btn-modal-qr" style="flex:1;min-width:150px;padding:13px" onclick="generateShareLink()">
+          🔗 Tạo link riêng của tôi
         </button>
         <button class="btn-modal-preview" style="flex:1;min-width:120px;padding:13px" onclick="window.open('index.html?preview=1','_blank')">
           👁️ Xem thử món quà
         </button>
+      </div>
+      <!-- Link kết quả -->
+      <div id="genLinkResult" style="display:none">
+        <label>Link riêng của bạn (copy & gửi cho người nhận)</label>
+        <div style="display:flex;gap:8px;align-items:stretch">
+          <input type="text" id="genLinkBox" readonly style="flex:1;font-size:12px;cursor:pointer;color:#ff69b4" onclick="this.select()">
+          <button class="btn-qr-gen" style="flex-shrink:0;padding:10px 14px" onclick="copyGenLink()">📋 Copy</button>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-qr-gen" style="flex:1;padding:9px;font-size:13px" onclick="openGenLink()">👁️ Xem thử</button>
+          <button class="btn-modal-qr" style="flex:1;padding:9px;font-size:13px" onclick="makeQrFromGenLink()">💞 Tạo QR với link này</button>
+        </div>
       </div>
     </div>
   </div>
@@ -981,6 +993,49 @@ function useLanIpShare() {
 function openHeartQRShare() {
   const link = _getShareLink();
   window.open('heartqr.html?link=' + encodeURIComponent(link), '_blank');
+}
+
+// ── Tạo link riêng encode config vào URL ──
+function generateShareLink() {
+  // Lấy state hiện tại từ form
+  const cfg = {
+    morphTexts: state.morphTexts?.length ? state.morphTexts : ['happy', "women's day", 'em iu'],
+    letter: {
+      text:    state.letterText    || window.DEFAULT_APP_CONFIG?.letter?.text || '',
+      caption: state.letterCaption || '♥',
+    }
+  };
+  // Bỏ qua ảnh/nhạc (base64 quá nặng cho URL)
+  try {
+    const encoded = btoa(encodeURIComponent(JSON.stringify(cfg)));
+    const base = window.location.origin; // https://gift-23ge.vercel.app
+    const link = `${base}/?d=${encoded}`;
+    document.getElementById('genLinkBox').value = link;
+    document.getElementById('genLinkResult').style.display = 'block';
+    // Cuộn xuống cho thấy
+    document.getElementById('genLinkResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } catch(e) {
+    alert('Lỗi tạo link: ' + e.message);
+  }
+}
+
+function copyGenLink() {
+  const v = document.getElementById('genLinkBox').value;
+  navigator.clipboard.writeText(v).then(() => {
+    const b = document.querySelector('#genLinkResult .btn-qr-gen');
+    b.textContent = '✓ Đã copy!';
+    setTimeout(() => b.textContent = '📋 Copy', 1800);
+  });
+}
+
+function openGenLink() {
+  const v = document.getElementById('genLinkBox').value;
+  if (v) window.open(v, '_blank');
+}
+
+function makeQrFromGenLink() {
+  const v = document.getElementById('genLinkBox').value;
+  if (v) window.open('heartqr.html?link=' + encodeURIComponent(v), '_blank');
 }
 
 function openPreview() {
