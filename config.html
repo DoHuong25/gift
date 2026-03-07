@@ -23,12 +23,12 @@ const CONFIG_DEFAULTS = {
 };
 
 // Generate UUID for Supabase
-function generateUUID() {
+window.generateUUID = function() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
     return v.toString(16);
   });
-}
+};
 </script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -983,7 +983,7 @@ async function handleMusicFile(input) {
   
   try {
     const ext = f.name.split('.').pop() || 'mp3';
-    const filePath = `music_${Date.now()}_${generateUUID()}.${ext}`;
+    const filePath = `music_${Date.now()}_${window.generateUUID()}.${ext}`;
     
     // Upload thẳng lên Supabase Storage bucket 'files'
     const { data: uploadData, error: uploadError } = await supabase
@@ -1184,7 +1184,7 @@ async function generateShareLink() {
     mainCfg.sphereCount = validSphere.length;
     
     // Gửi lên bảng gifts trong Supabase
-    const docId = generateUUID();
+    const docId = window.generateUUID();
     
     const { error: sbError } = await supabase
       .from('gifts')
