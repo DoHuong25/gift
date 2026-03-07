@@ -624,17 +624,15 @@ function signOut() {
       </div>
       <div>
         <label>Ảnh hiển thị trong thư (Modal)</label>
-        <div class="letter-img-zone" id="tpl2ModalImgZone" onclick="document.getElementById('tpl2ModalImgInput').click()">
-          <input type="file" id="tpl2ModalImgInput" accept="image/*" style="display:none" onchange="handleTpl2ModalImg(this)">
-          <div class="placeholder" id="tpl2ModalImgPlaceholder">
-            <div style="font-size:24px;margin-bottom:8px">📷</div>
-            <div>Nhấn để tải ảnh lên</div>
-            <div style="font-size:12px;opacity:0.6;margin-top:4px">(Ảnh dọc hoặc vuông)</div>
+        <div class="sphere-grid" style="grid-template-columns: repeat(auto-fill, minmax(100px, 120px)); margin-top: 10px;">
+          <div class="sphere-item" id="tpl2ModalImgPreviewZone" style="display:none; width: 120px; height: 120px;">
+            <img id="tpl2ModalImgPreview" src="" alt="Ảnh thư" style="object-fit:cover;">
+            <button class="remove-btn" onclick="removeTpl2ModalImg()">✕</button>
           </div>
-          <img id="tpl2ModalImgPreview" src="" alt="Ảnh thư" class="preview">
-          <div class="actions" id="tpl2ModalImgActions" onclick="event.stopPropagation()">
-            <button class="btn" style="background:var(--pink)" onclick="document.getElementById('tpl2ModalImgInput').click()">Đổi ảnh</button>
-            <button class="btn" style="background:rgba(255,255,255,0.2)" onclick="removeTpl2ModalImg()">Xóa</button>
+          <div class="sphere-add" id="tpl2ModalImgAdd" style="width: 120px; height: 120px;">
+            <input type="file" id="tpl2ModalImgInput" accept="image/*" onchange="handleTpl2ModalImg(this)">
+            <div>+</div>
+            <div class="sphere-count">Tải ảnh</div>
           </div>
         </div>
       </div>
@@ -957,21 +955,17 @@ async function handleTpl2ModalImg(input) {
   const b64 = await fileToBase64(input.files[0]);
   state.letterImageBase64 = b64;
   state.letterImage = b64;
-  const img = document.getElementById('tpl2ModalImgPreview');
-  const ph  = document.getElementById('tpl2ModalImgPlaceholder');
-  const act = document.getElementById('tpl2ModalImgActions');
-  img.src = b64; img.classList.add('show');
-  ph.style.display = 'none'; act.style.display = 'flex';
+  document.getElementById('tpl2ModalImgPreview').src = b64;
+  document.getElementById('tpl2ModalImgPreviewZone').style.display = 'block';
+  document.getElementById('tpl2ModalImgAdd').style.display = 'none';
   markDirty();
 }
 function removeTpl2ModalImg() {
   state.letterImage = '';
   state.letterImageBase64 = null;
-  const img = document.getElementById('tpl2ModalImgPreview');
-  const ph  = document.getElementById('tpl2ModalImgPlaceholder');
-  const act = document.getElementById('tpl2ModalImgActions');
-  img.src = ''; img.classList.remove('show');
-  ph.style.display = ''; act.style.display = 'none';
+  document.getElementById('tpl2ModalImgPreview').src = '';
+  document.getElementById('tpl2ModalImgPreviewZone').style.display = 'none';
+  document.getElementById('tpl2ModalImgAdd').style.display = 'flex';
   document.getElementById('tpl2ModalImgInput').value = '';
   markDirty();
 }
@@ -1389,12 +1383,12 @@ async function init() {
     
     // Của riêng Mẫu 2
     const limg = document.getElementById('tpl2ModalImgPreview');
-    if (limg) {
-      limg.src = state.letterImage; limg.classList.add('show');
-      const lph = document.getElementById('tpl2ModalImgPlaceholder');
-      if (lph) lph.style.display = 'none';
-      const lact = document.getElementById('tpl2ModalImgActions');
-      if (lact) lact.style.display = 'flex';
+    const lzone = document.getElementById('tpl2ModalImgPreviewZone');
+    const ladd = document.getElementById('tpl2ModalImgAdd');
+    if (limg && lzone && ladd) {
+      limg.src = state.letterImage;
+      lzone.style.display = 'block';
+      ladd.style.display = 'none';
     }
   }
 
