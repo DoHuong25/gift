@@ -1517,12 +1517,16 @@ async function triggerQr() {
   const url=document.getElementById('qrUrl').value.trim();
   if(!url){alert('Vui lòng nhập URL!');return;}
   const btn=document.getElementById('qrGenBtn');
-  btn.disabled=true; btn.textContent='⏳ Đang tạo...';
+  if (btn) {
+    btn.disabled=true; btn.textContent='⏳ Đang tạo...';
+  }
   try{
     _qrRawCV=await _makeQrRaw(url);
     await _renderQrCard();
   } catch(e){ console.error(e); alert('Lỗi: '+e.message); }
-  btn.disabled=false; btn.textContent='✨ Tạo QR';
+  if (btn) {
+    btn.disabled=false; btn.textContent='✨ Tạo QR';
+  }
 }
 
 async function dlQrNew() {
