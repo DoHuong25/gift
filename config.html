@@ -376,12 +376,7 @@ const CONFIG_DEFAULTS = {
     </div>
   </div>
   <div style="display:flex;gap:10px">
-    <a href="share.html" style="text-decoration:none">
-      <button class="btn-preview" style="background:linear-gradient(135deg,#ff9db8,#d44f8a)">
-        📱 Tạo QR
-      </button>
-    </a>
-    <button class="btn-preview" onclick="openPreview()">
+    <button class="btn-preview" onclick="openPreview()" style="background:linear-gradient(135deg,#ff9db8,#d44f8a)">
       👁️ Xem thử
     </button>
   </div>
@@ -1387,7 +1382,8 @@ function pickQrTpl(btn) {
   btn.style.boxShadow = '0 4px 14px rgba(255,105,180,0.35)';
   _qrTpl = btn.dataset.tpl;
   document.getElementById('qrColorRow').style.display   = _qrTpl === 'heart' ? '' : 'none';
-  document.getElementById('qrCaptionRow').style.display = _qrTpl === 'heart' ? '' : 'none';
+  const cap = document.getElementById('qrCaption');
+  if (cap) cap.style.display = _qrTpl === 'heart' ? '' : 'none';
   if (_qrRawCV) _renderQrCard();
 }
 
