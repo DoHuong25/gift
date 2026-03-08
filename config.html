@@ -1503,7 +1503,8 @@ async function _renderQrCard() {
     if(_qrTpl==='heart'&&cap){ capEl.textContent=cap; capEl.style.display='block'; }
     else capEl.style.display='none';
     document.getElementById('qrPlaceholder').style.display='none';
-    document.getElementById('qrActions').style.display='flex';
+    const qa = document.getElementById('qrActions');
+    if (qa) qa.style.display='flex';
   } catch(e){ console.error(e); }
   document.getElementById('qrLoading').style.display='none';
   _qrBusy=false;
@@ -1527,8 +1528,8 @@ async function triggerQr() {
 
 async function dlQrNew() {
   if(!_qrRawCV) return;
-  const btn=document.querySelector('#qrActions .btn-dl');
-  btn.disabled=true; btn.textContent='⏳ Xuất...';
+  const btn=document.querySelector('.btn-dl');
+  if (btn) { btn.disabled=true; btn.textContent='⏳ Xuất...'; }
   try{
     const color=_qrTpl==='women2'?'white':_qrCol;
     const col=_colorizeQr(_qrRawCV,color);
@@ -1551,7 +1552,7 @@ async function dlQrNew() {
       a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
     },'image/png',1);
   } catch(e){ console.error(e); }
-  btn.disabled=false; btn.textContent='⬇️ Tải PNG';
+  if (btn) { btn.disabled=false; btn.textContent='⬇️ Tải Thiệp QR Về'; }
 }
 
 document.getElementById('qrCaption').addEventListener('input',()=>{ if(_qrRawCV) _renderQrCard(); });
