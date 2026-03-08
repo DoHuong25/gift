@@ -105,8 +105,7 @@ async function fetchSettings(configId) {
       flyingImages: images.length > 0 ? images : null,
       music: data.bgMusic || null,
       introTitle: data.tpl2IntroTitle || 'Cốc cốc, bó hoa đến rồi',
-      introHint: data.tpl2IntroHint || 'Chạm vào ảnh, có điều bất ngờ',
-      tpl2Effect: data.tpl2Effect || 'flying'
+      introHint: data.tpl2IntroHint || 'Chạm vào ảnh, có điều bất ngờ'
     };
   } catch (e) {
     console.error('Failed to fetch settings from Supabase:', e);
@@ -146,8 +145,7 @@ function getUrlParameter(name) {
       modalImage: ['modalImage', 'image'],
       flyingImages: 'flyingImages',
       music: 'music',
-      messages: ['listText', 'arrayText', 'messages'],
-      tpl2Effect: 'tpl2Effect'
+      messages: ['listText', 'arrayText', 'messages']
     };
 
     const keys = keyMap[name];
@@ -189,7 +187,6 @@ function getUrlParameter(name) {
       if (name === "image" && content.image) return content.image;
       if (name === "music" && content.music) return content.music;
       if (name === "messages" && content.messages) return content.messages;
-      if (name === "tpl2Effect" && content.tpl2Effect) return content.tpl2Effect;
     }
   }
 
@@ -305,8 +302,7 @@ onload = async () => {
                 flyingImages: previewData.tpl2Images && previewData.tpl2Images.length > 0 ? previewData.tpl2Images : null,
                 music: previewData.bgMusic || null,
                 introTitle: previewData.tpl2IntroTitle || 'Cốc cốc, bó hoa đến rồi',
-                introHint: previewData.tpl2IntroHint || 'Chạm vào ảnh, có điều bất ngờ',
-                tpl2Effect: previewData.tpl2Effect || 'flying'
+                introHint: previewData.tpl2IntroHint || 'Chạm vào ảnh, có điều bất ngờ'
             };
         }
     } else if (configId) {
@@ -976,31 +972,7 @@ function closePopup() {
     // Hide flowers and show flying images (only first time)
     if (!flyingImagesShown) {
         flyingImagesShown = true;
-        
-        const effect = getUrlParameter('tpl2Effect') || 'flying';
-        
-        if (effect === 'sphere') {
-            const iframe = document.createElement('iframe');
-            const urlObj = new URL(window.location.href);
-            let newPath = urlObj.pathname.replace('/template2/index.html', '/index.html');
-            if (newPath.endsWith('/template2/')) newPath = newPath.replace('/template2/', '/');
-            urlObj.pathname = newPath;
-            urlObj.searchParams.set('sphereOnly', '1');
-            
-            iframe.src = urlObj.toString();
-            iframe.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:9999;opacity:0;transition:opacity 1s ease-in;pointer-events:auto;';
-            document.body.appendChild(iframe);
-            
-            setTimeout(() => {
-                iframe.style.opacity = '1';
-                setTimeout(() => {
-                    const flowers = document.querySelector('.flowers');
-                    if (flowers) flowers.classList.add('flowers-hidden');
-                }, 1000);
-            }, 100);
-        } else {
-            hideFlowersAndShowImages();
-        }
+        hideFlowersAndShowImages();
     }
 
     // Prevent immediate reopen from event bubbling

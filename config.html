@@ -410,18 +410,19 @@ const CONFIG_DEFAULTS = {
       </div>
       <script>
         function changeTplUI() {
-          const isTpl2 = document.querySelector('input[name="templateOpt"]:checked').value === '2';
-          document.getElementById('lblTpl1').style.borderColor = isTpl2 ? 'var(--border)' : 'var(--pink)';
+          const val = document.querySelector('input[name="templateOpt"]:checked').value;
+          const isTpl1 = val === '1';
+          const isTpl2 = val === '2';
+          
+          document.getElementById('lblTpl1').style.borderColor = isTpl1 ? 'var(--pink)' : 'var(--border)';
           document.getElementById('lblTpl2').style.borderColor = isTpl2 ? 'var(--pink)' : 'var(--border)';
           
-          // Ẩn ảnh quả cầu (vì mẫu 2 ko dùng tới)
-          document.getElementById('cardSphere').style.display = isTpl2 ? 'none' : 'block';
-          // Ẩn hiệu ứng hạt
-          document.getElementById('cardParticle').style.display = isTpl2 ? 'none' : 'block';
-          // Ẩn/hiện tùy chỉnh riêng mẫu 2
-          document.getElementById('cardTpl2Options').style.display = isTpl2 ? 'block' : 'none';
-          // Ẩn cấu hình Mẫu 1 (Lá thư tình)
-          document.getElementById('cardLetter').style.display = isTpl2 ? 'none' : 'block';
+          document.getElementById('cardSphere').style.display = (isTpl1) ? 'block' : 'none';
+          document.getElementById('cardParticle').style.display = isTpl1 ? 'block' : 'none';
+          document.getElementById('cardTpl2Options').style.display = (isTpl2) ? 'block' : 'none';
+          document.getElementById('cardLetter').style.display = isTpl1 ? 'block' : 'none';
+          
+          changeTpl2Effect();
           markDirty();
         }
       </script>
@@ -566,6 +567,29 @@ const CONFIG_DEFAULTS = {
         </div>
       </div>
       <div>
+        <label>Hiệu ứng sau khi đóng thư</label>
+        <select id="tpl2Effect" class="input-modern" onchange="changeTpl2Effect()">
+          <option value="flying">Ảnh bay lên (Mặc định)</option>
+          <option value="sphere">Quả cầu 3D ngắm ảnh</option>
+        </select>
+      </div>
+      <script>
+        function changeTpl2Effect() {
+          const effect = document.getElementById('tpl2Effect').value;
+          const isTpl2 = document.querySelector('input[name="templateOpt"]:checked').value === '2';
+          
+          if (isTpl2 && effect === 'sphere') {
+            document.getElementById('cardSphere').style.display = 'block';
+            document.getElementById('tpl2FlyingImagesSection').style.display = 'none';
+          } else if (isTpl2 && effect === 'flying') {
+            document.getElementById('cardSphere').style.display = 'none';
+            document.getElementById('tpl2FlyingImagesSection').style.display = 'block';
+          }
+          markDirty();
+        }
+      </script>
+
+      <div id="tpl2FlyingImagesSection">
         <label>Ảnh bay lên (chọn nhiều ảnh) — ảnh này sẽ hiện ở popup</label>
         <div class="sphere-grid" id="tpl2ImagesGrid">
           <div class="sphere-add" id="tpl2ImgAdd">
@@ -1069,6 +1093,7 @@ function buildConfig() {
     letterText: (document.getElementById('cardTpl2Options')?.style.display !== 'none' ? document.getElementById('tpl2ModalContent')?.value : document.getElementById('letterText')?.value) || '',
     bgMusic:  state.bgMusicBase64 || state.bgMusicPath || null,
     bgVolume: parseFloat(document.getElementById('bgVolume')?.value || '0.5') || 0.5,
+    tpl2Effect: document.getElementById('tpl2Effect')?.value || 'flying',
   };
 }
 
@@ -1191,7 +1216,8 @@ async function generateShareLink() {
     }
 
     const tplOpt = document.querySelector('input[name="templateOpt"]:checked').value;
-    const linkPath = tplOpt === '2' ? 'template2/index.html' : '';
+    let linkPath = '';
+    if (tplOpt === '2') linkPath = 'template2/index.html';
     const link = `${window.location.origin}/${linkPath}?id=${docId}`;
 
     document.getElementById('genLinkBox').value = link;
@@ -1225,7 +1251,8 @@ function openGenLink() {
 
 function openPreview() {
   const tplOpt = document.querySelector('input[name="templateOpt"]:checked').value;
-  const linkPath = tplOpt === '2' ? 'template2/index.html' : 'index.html';
+  let linkPath = 'index.html';
+  if (tplOpt === '2') linkPath = 'template2/index.html';
   window.open(linkPath + '?preview=1', '_blank');
 }
 

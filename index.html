@@ -685,6 +685,7 @@
 
         const params = new URLSearchParams(location.search);
         const isPreviewMode = params.get('preview') === '1';
+        const isSphereOnly = params.get('sphereOnly') === '1';
         if (isPreviewMode) {
             const existing = document.getElementById('previewModeWatermark');
             if (!existing) {
@@ -755,11 +756,11 @@
         }
 
         // Feature flags — mặc định bật (=== true để opt-in, !== false để opt-out)
-        const enablePasscode    = cfg.enablePasscode !== false;     // default: bật
-        const enableMorphEffect = cfg.enableMorphEffect !== false;  // default: bật
+        const enablePasscode    = !isSphereOnly && cfg.enablePasscode !== false;     // default: bật
+        const enableMorphEffect = !isSphereOnly && cfg.enableMorphEffect !== false;  // default: bật
         const enableSphere      = cfg.enableSphere !== false;       // default: bật
         const enableSphereFlyingImages = cfg.enableSphereFlyingImages !== false; // default: bật
-        const enableLetter      = cfg.enableLetter !== false;       // default: bật
+        const enableLetter      = !isSphereOnly && cfg.enableLetter !== false;       // default: bật
         const enableWebsiteInfo = cfg.enableWebsiteInfo !== false;  // default: bật
 
         let scene, camera, renderer, controls, clock;
@@ -2202,6 +2203,7 @@
         const bgMusic = new Audio(cfg.bgMusic || 'assets/music/bgmucsic.mp3');
         bgMusic.loop = true;
         bgMusic.volume = typeof cfg.bgVolume === 'number' ? cfg.bgVolume : 0.55;
+        if (new URLSearchParams(location.search).get('sphereOnly') === '1') bgMusic.volume = 0;
         bgMusic.preload = 'auto';
 
         function startBgMusic() {
