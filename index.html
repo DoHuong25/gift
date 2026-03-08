@@ -686,7 +686,13 @@
         const params = new URLSearchParams(location.search);
         const isPreviewMode = params.get('preview') === '1';
         const isSphereOnly = params.get('sphereOnly') === '1';
-        if (isPreviewMode) {
+        
+        if (isSphereOnly) {
+            const ls = document.getElementById('loading');
+            if (ls) ls.style.display = 'none';
+        }
+        
+        if (isPreviewMode && !isSphereOnly) {
             const existing = document.getElementById('previewModeWatermark');
             if (!existing) {
                 const wm = document.createElement('div');
