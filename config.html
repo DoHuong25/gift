@@ -417,6 +417,14 @@ const CONFIG_DEFAULTS = {
           document.getElementById('lblTpl1').style.borderColor = isTpl1 ? 'var(--pink)' : 'var(--border)';
           document.getElementById('lblTpl2').style.borderColor = isTpl2 ? 'var(--pink)' : 'var(--border)';
           
+          if (isTpl1) {
+            // Đưa cardSphere về vị trí ban đầu (sau cardLetter)
+            const cardLetter = document.getElementById('cardLetter');
+            if (cardLetter && cardLetter.parentNode) {
+              cardLetter.parentNode.insertBefore(document.getElementById('cardSphere'), cardLetter.nextSibling);
+            }
+          }
+          
           document.getElementById('cardSphere').style.display = (isTpl1) ? 'block' : 'none';
           document.getElementById('cardParticle').style.display = isTpl1 ? 'block' : 'none';
           document.getElementById('cardTpl2Options').style.display = (isTpl2) ? 'block' : 'none';
@@ -579,7 +587,14 @@ const CONFIG_DEFAULTS = {
           const isTpl2 = document.querySelector('input[name="templateOpt"]:checked').value === '2';
           
           if (isTpl2 && effect === 'sphere') {
-            document.getElementById('cardSphere').style.display = 'block';
+            const cardSphere = document.getElementById('cardSphere');
+            const cardTpl2 = document.getElementById('cardTpl2Options');
+            // Chuyển cardSphere xuống dưới cardTpl2Options để dễ thấy
+            if (cardTpl2 && cardTpl2.parentNode) {
+               cardTpl2.parentNode.insertBefore(cardSphere, cardTpl2.nextSibling);
+            }
+            cardSphere.style.display = 'block';
+            cardSphere.scrollIntoView({behavior: 'smooth', block: 'center'});
             document.getElementById('tpl2FlyingImagesSection').style.display = 'none';
           } else if (isTpl2 && effect === 'flying') {
             document.getElementById('cardSphere').style.display = 'none';

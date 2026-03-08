@@ -1038,7 +1038,13 @@ function hideFlowersAndShowImages() {
     // Tính kích thước ảnh theo số lượng
     const count = images.length;
     // Hình vuông hoàn toàn: 14vw cho 10 ảnh (càng ít ảnh càng to, max 20vw)
-    const imgVW = Math.max(9, Math.round(20 - (count - 4) * 1.0));
+    let imgVW = Math.max(9, Math.round(20 - (count - 4) * 1.0));
+    
+    // Tăng kích thước nếu là thiết bị di động
+    const isMobileScreen = window.innerWidth <= 600;
+    if (isMobileScreen) {
+        imgVW = Math.max(25, imgVW * 2.5); // ít nhất 25vw, trung bình khoảng 30-35vw
+    }
     const imgVH = imgVW;  // Khung vuông
 
     // Hàm tạo 1 bức ảnh bay lên từ dưới màn hình
