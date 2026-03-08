@@ -2934,3 +2934,10 @@ body {
     opacity: 0;
   }
 }
+
+@media (max-width: 600px) {
+  .flying-img {
+    width: 45vmin;
+    height: 45vmin;
+  }
+}
