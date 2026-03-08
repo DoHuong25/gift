@@ -415,6 +415,11 @@
              <div id="progress"></div>
         </div>
     </div>
+    <script>
+        if (new URLSearchParams(window.location.search).get('sphereOnly') === '1') {
+            document.getElementById('loading').style.display = 'none';
+        }
+    </script>
 
     <div id="ui">
         <div id="info"></div>
